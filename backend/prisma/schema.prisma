@@ -43,6 +43,7 @@ model Class {
   id         String     @id @default(uuid())
   name       String     @unique
   department String
+  semester   Int        @default(1) // 1 to 8
   students   Student[]
   timetable  TimetableSlot[]
 }
@@ -56,6 +57,7 @@ model Student {
   class      Class    @relation(fields: [classId], references: [id])
   attendance Attendance[]
   leaves     LeaveRequest[]
+  fees       FeeDue[]
 }
 
 model Teacher {
@@ -70,10 +72,12 @@ model Subject {
   id         String   @id @default(uuid())
   name       String
   code       String   @unique
+  semester   Int        @default(1)
   teacherId  String
   teacher    Teacher  @relation(fields: [teacherId], references: [id])
   attendance Attendance[]
   timetable  TimetableSlot[]
+  exams      Exam[]
 }
 
 model TimetableSlot {
@@ -90,13 +94,13 @@ model TimetableSlot {
 
 model Attendance {
   id          String           @id @default(uuid())
-  date        DateTime         // Store normalized date (midnight UTC)
+  date        DateTime         
   status      AttendanceStatus
   studentId   String
   student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
   subjectId   String
   subject     Subject          @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  markedById  String           // User ID of the teacher who marked it
+  markedById  String           
   createdAt   DateTime         @default(now())
 
   @@unique([date, studentId, subjectId])
@@ -121,4 +125,42 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model Exam {
+  id        String   @id @default(uuid())
+  name      String   
+  date      DateTime
+  startTime String   
+  endTime   String   
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  room      String   
+}
+
+model Holiday {
+  id          String   @id @default(uuid())
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  description String?
+}
+
+model CollegeConfig {
+  id              String   @id @default(uuid())
+  name            String   @default("City Technological University")
+  code            String   @default("CTU")
+  logoUrl         String   @default("")
+  academicYear    String   @default("2026-2027")
+}
+
+model FeeDue {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  amount      Float
+  dueDate     DateTime
+  status      String   // "PENDING" or "PAID"
+  description String   
+  createdAt   DateTime @default(now())
 }

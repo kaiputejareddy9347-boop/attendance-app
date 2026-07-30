@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Calendar, ClipboardCheck, BookOpen, Users, Bell } from 'lucide-react';
+import { LogOut, ClipboardCheck } from 'lucide-react';
+import axios from 'axios';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [collegeConfig, setCollegeConfig] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      axios.get('/api/college/config')
+        .then(res => setCollegeConfig(res.data))
+        .catch(err => console.error('Error loading config', err));
+    }
+  }, [user]);
 
   if (!user) return null;
 
@@ -22,7 +32,7 @@ const Navbar = () => {
       <div className="navbar-container">
         <Link to="/" className="navbar-brand">
           <ClipboardCheck size={24} />
-          <span>AttendancePortal</span>
+          <span>{collegeConfig ? `${collegeConfig.name} (${collegeConfig.code})` : 'AttendancePortal'}</span>
         </Link>
 
         <div className="navbar-links">

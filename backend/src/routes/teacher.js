@@ -222,4 +222,50 @@ router.put('/leaves/:id/status', async (req, res) => {
   }
 });
 
+// GET exams for subjects taught by this teacher
+router.get('/exams', async (req, res) => {
+  try {
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId: req.user.userId },
+    });
+
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher profile not found.' });
+    }
+
+    const exams = await prisma.exam.findMany({
+      where: {
+        subject: {
+          teacherId: teacher.id,
+        },
+      },
+      include: {
+        subject: { select: { name: true, code: true } },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    res.json(exams);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching teacher exams.', error: error.message });
+  }
+});
+
+// GET holidays for teachers
+router.get('/holidays', async (req, res) => {
+  try {
+    const holidays = await prisma.holiday.findMany({
+      where: {
+        endDate: {
+          gte: new Date(),
+        },
+      },
+      orderBy: { startDate: 'asc' },
+    });
+    res.json(holidays);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching holidays.', error: error.message });
+  }
+});
+
 export default router;

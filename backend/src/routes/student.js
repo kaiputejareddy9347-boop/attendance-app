@@ -172,4 +172,74 @@ router.get('/leaves', async (req, res) => {
   }
 });
 
+// GET exams for the student's class semester level
+router.get('/exams', async (req, res) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { userId: req.user.userId },
+      include: { class: true },
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student profile not found.' });
+    }
+
+    // Find exams for subjects that are in the student's class semester level
+    const exams = await prisma.exam.findMany({
+      where: {
+        subject: {
+          semester: student.class.semester,
+        },
+      },
+      include: {
+        subject: { select: { name: true, code: true } },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    res.json(exams);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching student exams.', error: error.message });
+  }
+});
+
+// GET upcoming academic holidays
+router.get('/holidays', async (req, res) => {
+  try {
+    const holidays = await prisma.holiday.findMany({
+      where: {
+        endDate: {
+          gte: new Date(),
+        },
+      },
+      orderBy: { startDate: 'asc' },
+    });
+    res.json(holidays);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching holidays.', error: error.message });
+  }
+});
+
+// GET fee dues for the student
+router.get('/fees', async (req, res) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { userId: req.user.userId },
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student profile not found.' });
+    }
+
+    const fees = await prisma.feeDue.findMany({
+      where: { studentId: student.id },
+      orderBy: { dueDate: 'asc' },
+    });
+
+    res.json(fees);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching student fees.', error: error.message });
+  }
+});
+
 export default router;

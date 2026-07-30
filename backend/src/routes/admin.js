@@ -160,4 +160,205 @@ router.post('/timetable', async (req, res) => {
   }
 });
 
+// PUT update college configuration
+router.put('/college-config', async (req, res) => {
+  const { name, code, logoUrl, academicYear } = req.body;
+  try {
+    const config = await prisma.collegeConfig.findFirst();
+    let updated;
+    if (config) {
+      updated = await prisma.collegeConfig.update({
+        where: { id: config.id },
+        data: { name, code, logoUrl, academicYear },
+      });
+    } else {
+      updated = await prisma.collegeConfig.create({
+        data: { name, code, logoUrl, academicYear },
+      });
+    }
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating college config.', error: error.message });
+  }
+});
+
+// GET all exams (admin list)
+router.get('/exams', async (req, res) => {
+  try {
+    const exams = await prisma.exam.findMany({
+      include: {
+        subject: { select: { name: true, code: true } },
+      },
+      orderBy: { date: 'asc' },
+    });
+    res.json(exams);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching exams.', error: error.message });
+  }
+});
+
+// POST schedule exam
+router.post('/exams', async (req, res) => {
+  const { name, date, startTime, endTime, subjectId, room } = req.body;
+  if (!name || !date || !startTime || !endTime || !subjectId || !room) {
+    return res.status(400).json({ message: 'All exam details are required.' });
+  }
+  try {
+    const exam = await prisma.exam.create({
+      data: {
+        name,
+        date: new Date(date),
+        startTime,
+        endTime,
+        subjectId,
+        room,
+      },
+    });
+    res.status(201).json(exam);
+  } catch (error) {
+    res.status(500).json({ message: 'Error scheduling exam.', error: error.message });
+  }
+});
+
+// DELETE exam
+router.delete('/exams/:id', async (req, res) => {
+  try {
+    await prisma.exam.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Exam deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting exam.', error: error.message });
+  }
+});
+
+// GET all holidays (admin list)
+router.get('/holidays', async (req, res) => {
+  try {
+    const holidays = await prisma.holiday.findMany({
+      orderBy: { startDate: 'asc' },
+    });
+    res.json(holidays);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching holidays.', error: error.message });
+  }
+});
+
+// POST declare holiday
+router.post('/holidays', async (req, res) => {
+  const { name, startDate, endDate, description } = req.body;
+  if (!name || !startDate || !endDate) {
+    return res.status(400).json({ message: 'Name, startDate, and endDate are required.' });
+  }
+  try {
+    const holiday = await prisma.holiday.create({
+      data: {
+        name,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        description,
+      },
+    });
+    res.status(201).json(holiday);
+  } catch (error) {
+    res.status(500).json({ message: 'Error declaring holiday.', error: error.message });
+  }
+});
+
+// DELETE holiday
+router.delete('/holidays/:id', async (req, res) => {
+  try {
+    await prisma.holiday.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Holiday deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting holiday.', error: error.message });
+  }
+});
+
+// GET all fees dues (admin list)
+router.get('/fees', async (req, res) => {
+  try {
+    const fees = await prisma.feeDue.findMany({
+      include: {
+        student: {
+          include: {
+            user: { select: { name: true, email: true } },
+            class: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { dueDate: 'asc' },
+    });
+    res.json(fees);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching fees records.', error: error.message });
+  }
+});
+
+// POST create fee due log
+router.post('/fees', async (req, res) => {
+  const { studentId, amount, dueDate, description } = req.body;
+  if (!studentId || !amount || !dueDate || !description) {
+    return res.status(400).json({ message: 'studentId, amount, dueDate, and description are required.' });
+  }
+  try {
+    const fee = await prisma.feeDue.create({
+      data: {
+        studentId,
+        amount: parseFloat(amount),
+        dueDate: new Date(dueDate),
+        status: 'PENDING',
+        description,
+      },
+    });
+
+    // Notify student
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      select: { userId: true },
+    });
+    if (student) {
+      await prisma.notification.create({
+        data: {
+          userId: student.userId,
+          title: 'New Fee Dues Allocated',
+          message: `An amount of $${amount} for "${description}" has been invoiced, due on ${new Date(dueDate).toLocaleDateString()}.`,
+        },
+      });
+    }
+
+    res.status(201).json(fee);
+  } catch (error) {
+    res.status(500).json({ message: 'Error logging fee dues.', error: error.message });
+  }
+});
+
+// PUT update fee payment status (toggle paid/pending)
+router.put('/fees/:id/status', async (req, res) => {
+  const { status } = req.body; // 'PAID' or 'PENDING'
+  if (!status || !['PAID', 'PENDING'].includes(status)) {
+    return res.status(400).json({ message: 'Valid status required: PAID or PENDING.' });
+  }
+  try {
+    const fee = await prisma.feeDue.update({
+      where: { id: req.params.id },
+      data: { status },
+      include: {
+        student: { select: { userId: true } },
+      },
+    });
+
+    // Notify student
+    await prisma.notification.create({
+      data: {
+        userId: fee.student.userId,
+        title: 'Fee Payment Received',
+        message: `Your payment status for "${fee.description}" was marked as ${status.toLowerCase()}.`,
+      },
+    });
+
+    res.json(fee);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating payment status.', error: error.message });
+  }
+});
+
 export default router;
