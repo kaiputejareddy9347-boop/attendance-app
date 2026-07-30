@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://attendance-backend-YOUR-URL.vercel.app/api/:path*"
+      "destination": "track-wise-attendance-manager-mlpv6apcv.vercel.app/api/:path*"
     },
     {
       "source": "/(.*)",
