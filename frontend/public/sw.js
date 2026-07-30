@@ -3,11 +3,12 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/src/main.jsx',
-  '/src/App.jsx',
-  '/src/index.css'
+  '/favicon.ico',
+  '/logo192.png',
+  '/logo512.png'
 ];
 
+// Install stage - cache essential static shells
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -15,17 +16,37 @@ self.addEventListener('install', event => {
   );
 });
 
+// Cache intercept and dynamic caching of assets
 self.addEventListener('fetch', event => {
-  // Only cache GET requests
-  if (event.request.method !== 'GET') return;
+  // Skip non-GET, API endpoints, or cross-origin requests
+  if (
+    event.request.method !== 'GET' || 
+    event.request.url.includes('/api/') || 
+    !event.request.url.startsWith(self.location.origin)
+  ) {
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
-        if (response) return response;
-        return fetch(event.request).catch(() => {
-          // Offline fallback if network fails
-          return caches.match('/');
+      .then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        return fetch(event.request).then(response => {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+
+          return response;
+        }).catch(() => {
+          return caches.match('/index.html');
         });
       })
   );
