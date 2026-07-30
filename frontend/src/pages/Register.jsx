@@ -29,8 +29,13 @@ const Register = () => {
     if (role === 'STUDENT') {
       axios.get('/api/auth/classes')
         .then(res => {
-          setClasses(res.data);
-          if (res.data.length > 0) setClassId(res.data[0].id);
+          if (Array.isArray(res.data)) {
+            setClasses(res.data);
+            if (res.data.length > 0) setClassId(res.data[0].id);
+          } else {
+            console.error('Received non-array data for classes:', res.data);
+            setClasses([]);
+          }
         })
         .catch(err => {
           console.error('Error fetching classes', err);
@@ -185,7 +190,7 @@ const Register = () => {
                   onChange={(e) => setClassId(e.target.value)}
                   disabled={loading}
                 >
-                  {classes.length === 0 ? (
+                  {!Array.isArray(classes) || classes.length === 0 ? (
                     <option value="">No classes available (Contact Admin)</option>
                   ) : (
                     classes.map((cls) => (
