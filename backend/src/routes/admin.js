@@ -160,6 +160,41 @@ router.post('/timetable', async (req, res) => {
   }
 });
 
+// GET all timetable slots (admin list)
+router.get('/timetable', async (req, res) => {
+  try {
+    const slots = await prisma.timetableSlot.findMany({
+      include: {
+        class: { select: { name: true } },
+        subject: {
+          select: {
+            name: true,
+            code: true,
+            teacher: { include: { user: { select: { name: true } } } }
+          }
+        }
+      },
+      orderBy: [
+        { dayOfWeek: 'asc' },
+        { startTime: 'asc' }
+      ]
+    });
+    res.json(slots);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching timetable slots.', error: error.message });
+  }
+});
+
+// DELETE timetable slot
+router.delete('/timetable/:id', async (req, res) => {
+  try {
+    await prisma.timetableSlot.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Timetable slot deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting timetable slot.', error: error.message });
+  }
+});
+
 // PUT update college configuration
 router.put('/college-config', async (req, res) => {
   const { name, code, logoUrl, academicYear } = req.body;

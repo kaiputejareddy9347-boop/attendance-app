@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useToast } from '../components/Toast';
-import { Settings, Plus, Users, BookOpen, Layers, History, Calendar, CreditCard, Landmark, Trash2, ShieldAlert } from 'lucide-react';
+import { Settings, Plus, Users, BookOpen, Layers, History, Calendar, CreditCard, Landmark, Trash2, Clock, ShieldAlert } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { showToast } = useToast();
@@ -18,6 +18,7 @@ const AdminDashboard = () => {
   const [exams, setExams] = useState([]);
   const [holidays, setHolidays] = useState([]);
   const [fees, setFees] = useState([]);
+  const [timetable, setTimetable] = useState([]);
 
   // College config state
   const [collegeName, setCollegeName] = useState('');
@@ -61,6 +62,15 @@ const AdminDashboard = () => {
   const [feeDesc, setFeeDesc] = useState('');
   const [creatingFee, setCreatingFee] = useState(false);
 
+  // Create Timetable Slot fields
+  const [ttClassId, setTtClassId] = useState('');
+  const [ttSubjectId, setTtSubjectId] = useState('');
+  const [ttDayOfWeek, setTtDayOfWeek] = useState(1);
+  const [ttStartTime, setTtStartTime] = useState('');
+  const [ttEndTime, setTtEndTime] = useState('');
+  const [ttRoom, setTtRoom] = useState('');
+  const [creatingTimetable, setCreatingTimetable] = useState(false);
+
   useEffect(() => {
     fetchAdminData();
     fetchCollegeConfig();
@@ -73,6 +83,7 @@ const AdminDashboard = () => {
 
       const classesRes = await axios.get('/api/admin/classes');
       setClasses(classesRes.data);
+      if (classesRes.data.length > 0) setTtClassId(classesRes.data[0].id);
 
       const teachersRes = await axios.get('/api/admin/teachers');
       setTeachers(teachersRes.data);
@@ -80,7 +91,10 @@ const AdminDashboard = () => {
 
       const subjectsRes = await axios.get('/api/admin/subjects');
       setSubjects(subjectsRes.data);
-      if (subjectsRes.data.length > 0) setExamSubjId(subjectsRes.data[0].id);
+      if (subjectsRes.data.length > 0) {
+        setExamSubjId(subjectsRes.data[0].id);
+        setTtSubjectId(subjectsRes.data[0].id);
+      }
 
       const studentsRes = await axios.get('/api/admin/students');
       setStudents(studentsRes.data);
@@ -94,6 +108,9 @@ const AdminDashboard = () => {
 
       const feesRes = await axios.get('/api/admin/fees');
       setFees(feesRes.data);
+
+      const timetableRes = await axios.get('/api/admin/timetable');
+      setTimetable(timetableRes.data);
     } catch (err) {
       console.error(err);
       showToast('Could not load administrative details.', 'error');
@@ -129,7 +146,6 @@ const AdminDashboard = () => {
         academicYear,
       });
       showToast('College configuration updated successfully.', 'success');
-      // Refresh Navbar brand
       window.location.reload();
     } catch (err) {
       showToast('Failed to update college config.', 'error');
@@ -305,6 +321,46 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleCreateTimetable = async (e) => {
+    e.preventDefault();
+    if (!ttClassId || !ttSubjectId || !ttDayOfWeek || !ttStartTime || !ttEndTime || !ttRoom) {
+      showToast('All timetable fields are required.', 'warning');
+      return;
+    }
+    setCreatingTimetable(true);
+    try {
+      await axios.post('/api/admin/timetable', {
+        classId: ttClassId,
+        subjectId: ttSubjectId,
+        dayOfWeek: parseInt(ttDayOfWeek),
+        startTime: ttStartTime,
+        endTime: ttEndTime,
+        room: ttRoom,
+      });
+      showToast('Linked subject to class schedule.', 'success');
+      setTtRoom('');
+      setTtStartTime('');
+      setTtEndTime('');
+      fetchAdminData();
+    } catch (error) {
+      console.error(error);
+      showToast('Failed to link timetable slot.', 'error');
+    } finally {
+      setCreatingTimetable(false);
+    }
+  };
+
+  const handleDeleteTimetable = async (id) => {
+    if (!confirm('Are you sure you want to remove this timetable class link?')) return;
+    try {
+      await axios.delete(`/api/admin/timetable/${id}`);
+      showToast('Timetable slot deleted.', 'success');
+      fetchAdminData();
+    } catch (error) {
+      showToast('Could not delete timetable slot.', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -315,6 +371,11 @@ const AdminDashboard = () => {
 
   const counts = stats?.counts || { students: 0, teachers: 0, classes: 0, subjects: 0 };
   const recentLogs = stats?.recentAttendance || [];
+
+  const getDayName = (dayNum) => {
+    const days = { 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday' };
+    return days[dayNum] || 'Unknown';
+  };
 
   return (
     <div className="app-container">
@@ -330,6 +391,7 @@ const AdminDashboard = () => {
       <div className="tabs-header">
         <button onClick={() => setActiveTab('STATS')} className={`tab-btn ${activeTab === 'STATS' ? 'active' : ''}`}><Layers size={16} /> Overview Stats</button>
         <button onClick={() => setActiveTab('CLASSES_COURSES')} className={`tab-btn ${activeTab === 'CLASSES_COURSES' ? 'active' : ''}`}><BookOpen size={16} /> Course & Classes</button>
+        <button onClick={() => setActiveTab('TIMETABLE')} className={`tab-btn ${activeTab === 'TIMETABLE' ? 'active' : ''}`}><Clock size={16} /> Timetables</button>
         <button onClick={() => setActiveTab('EXAMS')} className={`tab-btn ${activeTab === 'EXAMS' ? 'active' : ''}`}><Calendar size={16} /> Exams Planner</button>
         <button onClick={() => setActiveTab('HOLIDAYS')} className={`tab-btn ${activeTab === 'HOLIDAYS' ? 'active' : ''}`}><Calendar size={16} /> Holiday Recess</button>
         <button onClick={() => setActiveTab('FEES')} className={`tab-btn ${activeTab === 'FEES' ? 'active' : ''}`}><CreditCard size={16} /> Fees Dues</button>
@@ -339,7 +401,6 @@ const AdminDashboard = () => {
       {/* TAB 1: OVERVIEW STATS */}
       {activeTab === 'STATS' && (
         <div className="dashboard-grid">
-          {/* Stats counts */}
           <div className="col-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '8px' }}>
             <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ background: 'var(--accent-primary-glow)', color: 'var(--accent-primary)', padding: '12px', borderRadius: '12px' }}><Users size={24} /></div>
@@ -359,7 +420,6 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Recent Logs */}
           <div className="card col-span-12">
             <h3>Recent Global Attendance Logs</h3>
             {recentLogs.length === 0 ? (
@@ -453,7 +513,91 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 3: EXAMS PLANNER */}
+      {/* TAB 3: TIMETABLE slots scheduler */}
+      {activeTab === 'TIMETABLE' && (
+        <div className="dashboard-grid">
+          {/* Link class & subject */}
+          <div className="card col-span-5">
+            <h3>Assign Subject to Class</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>
+              Create weekly lecture slots. This links the subject teacher to the enrolled students of that class group.
+            </p>
+            <form onSubmit={handleCreateTimetable}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ttClass">Select Class Group</label>
+                <select id="ttClass" className="form-select" value={ttClassId} onChange={(e) => setTtClassId(e.target.value)}>
+                  {classes.map(c => <option key={c.id} value={c.id}>{c.name} ({c.department}) - Sem {c.semester}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ttSubject">Select Course Subject</label>
+                <select id="ttSubject" className="form-select" value={ttSubjectId} onChange={(e) => setTtSubjectId(e.target.value)}>
+                  {subjects.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code}) - Sem {s.semester}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ttDay">Lecture Day</label>
+                <select id="ttDay" className="form-select" value={ttDayOfWeek} onChange={(e) => setTtDayOfWeek(e.target.value)}>
+                  <option value={1}>Monday</option>
+                  <option value={2}>Tuesday</option>
+                  <option value={3}>Wednesday</option>
+                  <option value={4}>Thursday</option>
+                  <option value={5}>Friday</option>
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="ttStart">Start Time</label>
+                  <input id="ttStart" type="time" className="form-input" value={ttStartTime} onChange={(e) => setTtStartTime(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="ttEnd">End Time</label>
+                  <input id="ttEnd" type="time" className="form-input" value={ttEndTime} onChange={(e) => setTtEndTime(e.target.value)} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ttRoom">Room / Lecture Hall</label>
+                <input id="ttRoom" type="text" className="form-input" placeholder="e.g. Room 402, Block C" value={ttRoom} onChange={(e) => setTtRoom(e.target.value)} />
+              </div>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={creatingTimetable}>Create Lecture Slot</button>
+            </form>
+          </div>
+
+          {/* List of links */}
+          <div className="card col-span-7">
+            <h3>Timetable Matrix List</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto' }}>
+              {timetable.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', border: '1px dashed var(--glass-border)', borderRadius: '12px' }}>
+                  <p style={{ color: 'var(--text-muted)' }}>No timetable connections scheduled. Please assign a subject above.</p>
+                </div>
+              ) : (
+                timetable.map((slot) => (
+                  <div key={slot.id} style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', background: 'var(--accent-secondary-glow)', color: 'var(--accent-secondary)', padding: '2px 8px', borderRadius: '4px', fontWeight: '700' }}>
+                        {getDayName(slot.dayOfWeek)}
+                      </span>
+                      <h4 style={{ fontWeight: '600', marginTop: '6px' }}>{slot.subject.name} ({slot.subject.code})</h4>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        Class: <strong>{slot.class.name}</strong> | Room: <strong>{slot.room}</strong>
+                      </p>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        Timing: <strong>{slot.startTime} - {slot.endTime}</strong> | Faculty: {slot.subject.teacher.user.name}
+                      </p>
+                    </div>
+                    <button onClick={() => handleDeleteTimetable(slot.id)} className="btn btn-secondary btn-sm" style={{ padding: '8px', color: 'var(--color-absent)' }} title="Remove Slot">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: EXAMS PLANNER */}
       {activeTab === 'EXAMS' && (
         <div className="dashboard-grid">
           {/* Schedule Exam */}
@@ -523,7 +667,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 4: HOLIDAYS RECESS */}
+      {/* TAB 5: HOLIDAYS RECESS */}
       {activeTab === 'HOLIDAYS' && (
         <div className="dashboard-grid">
           {/* Declare Holiday */}
@@ -579,7 +723,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 5: FEES DUES */}
+      {/* TAB 6: FEES DUES */}
       {activeTab === 'FEES' && (
         <div className="dashboard-grid">
           {/* Assign Fee Invoice */}
@@ -660,7 +804,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 6: BRANDING */}
+      {/* TAB 7: BRANDING */}
       {activeTab === 'BRANDING' && (
         <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
           <h3>College Specification Profile</h3>
