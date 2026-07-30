@@ -1,0 +1,124 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student  Student?
+  teacher  Teacher?
+  notifications Notification[]
+}
+
+model Class {
+  id         String     @id @default(uuid())
+  name       String     @unique
+  department String
+  students   Student[]
+  timetable  TimetableSlot[]
+}
+
+model Student {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rollNumber String   @unique
+  classId    String
+  class      Class    @relation(fields: [classId], references: [id])
+  attendance Attendance[]
+  leaves     LeaveRequest[]
+}
+
+model Teacher {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeId String    @unique
+  subjects   Subject[]
+}
+
+model Subject {
+  id         String   @id @default(uuid())
+  name       String
+  code       String   @unique
+  teacherId  String
+  teacher    Teacher  @relation(fields: [teacherId], references: [id])
+  attendance Attendance[]
+  timetable  TimetableSlot[]
+}
+
+model TimetableSlot {
+  id        String   @id @default(uuid())
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  dayOfWeek Int      // 1 = Monday, 5 = Friday
+  startTime String   // e.g. "09:00"
+  endTime   String   // e.g. "10:00"
+  room      String   // e.g. "LHC-101"
+}
+
+model Attendance {
+  id          String           @id @default(uuid())
+  date        DateTime         // Store normalized date (midnight UTC)
+  status      AttendanceStatus
+  studentId   String
+  student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject          @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  markedById  String           // User ID of the teacher who marked it
+  createdAt   DateTime         @default(now())
+
+  @@unique([date, studentId, subjectId])
+}
+
+model LeaveRequest {
+  id        String      @id @default(uuid())
+  studentId String
+  student   Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  startDate DateTime
+  endDate   DateTime
+  reason    String
+  status    LeaveStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
