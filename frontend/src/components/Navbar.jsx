@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User, Award, Bell, Check, Calculator } from 'lucide-react';
+import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User, Award, Bell, Check, Calculator, Landmark } from 'lucide-react';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -60,9 +60,8 @@ const Navbar = () => {
   const isActive = (path, tab = null) => {
     if (tab) {
       const searchParams = new URLSearchParams(location.search);
-      const currentTab = searchParams.get('tab')?.toLowerCase();
-      // If path matches and tab matches (or default to stats if no query param)
-      if (tab === 'stats' && !currentTab) {
+      const currentTab = searchParams.get('tab');
+      if (!currentTab && tab === 'stats') {
         return location.pathname === path;
       }
       return location.pathname === path && currentTab === tab.toLowerCase();
@@ -305,6 +304,10 @@ const Navbar = () => {
                   <BookOpen size={18} />
                   <span>Courses</span>
                 </Link>
+                <Link to="/admin/dashboard?tab=timeline" className={`sidebar-link ${isActive('/admin/dashboard', 'timeline') ? 'active' : ''}`}>
+                  <Calendar size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Semester Timeline</span>
+                </Link>
                 <Link to="/admin/dashboard?tab=exams" className={`sidebar-link ${isActive('/admin/dashboard', 'exams') ? 'active' : ''}`}>
                   <Calendar size={18} />
                   <span>Exams Planner</span>
@@ -376,9 +379,9 @@ const Navbar = () => {
               <ClipboardCheck size={20} />
               <span>Mark</span>
             </Link>
-            <Link to="/teacher/dashboard?tab=marks" className={`mobile-bottom-nav-item ${isActive('/teacher/dashboard', 'marks') ? 'active' : ''}`}>
-              <Award size={20} />
-              <span>Grades</span>
+            <Link to="/teacher/dashboard?tab=timetable" className={`mobile-bottom-nav-item ${isActive('/teacher/dashboard', 'timetable') ? 'active' : ''}`}>
+              <Clock size={20} />
+              <span>Timetable</span>
             </Link>
             <Link to="/teacher/dashboard?tab=notice" className={`mobile-bottom-nav-item ${isActive('/teacher/dashboard', 'notice') ? 'active' : ''}`}>
               <FileText size={20} />
@@ -397,9 +400,9 @@ const Navbar = () => {
               <LayoutDashboard size={20} />
               <span>Home</span>
             </Link>
-            <Link to="/admin/dashboard?tab=classes" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'classes') ? 'active' : ''}`}>
-              <Layers size={20} />
-              <span>Classes</span>
+            <Link to="/admin/dashboard?tab=departments" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'departments') ? 'active' : ''}`}>
+              <Landmark size={20} />
+              <span>Departments</span>
             </Link>
             <Link to="/admin/dashboard?tab=timetable" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'timetable') ? 'active' : ''}`}>
               <Clock size={20} />

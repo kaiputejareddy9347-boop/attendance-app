@@ -16,7 +16,7 @@ const AdminDashboard = () => {
   };
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeDirectory, setActiveDirectory] = useState('CLASSES');
+  const [activeDirectory, setActiveDirectory] = useState('DEPARTMENTS');
   
   // Listings data
   const [classes, setClasses] = useState([]);
@@ -632,7 +632,6 @@ const AdminDashboard = () => {
 
           {/* Directory Tab Selector Buttons */}
           <div className="col-span-12" style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-            <button onClick={() => setActiveDirectory('CLASSES')} className={`tab-btn ${activeDirectory === 'CLASSES' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Layers size={14} /> Classes</button>
             <button onClick={() => setActiveDirectory('DEPARTMENTS')} className={`tab-btn ${activeDirectory === 'DEPARTMENTS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Landmark size={14} /> Departments</button>
             <button onClick={() => setActiveDirectory('SUBJECTS')} className={`tab-btn ${activeDirectory === 'SUBJECTS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><BookOpen size={14} /> Subjects</button>
             <button onClick={() => setActiveDirectory('TEACHERS')} className={`tab-btn ${activeDirectory === 'TEACHERS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Users size={14} /> Faculty</button>
@@ -1170,9 +1169,6 @@ const AdminDashboard = () => {
           {/* Link class & subject / Edit form */}
           <div className="card col-span-5">
             <h3>{editingTimetableSlot ? 'Edit Timetable Lecture Slot' : 'Assign Subject to Class'}</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>
-              Create or modify weekly lecture slots. Lab subjects default to 3 hours, and Theory subjects default to 2 hours.
-            </p>
             <form onSubmit={handleCreateTimetable}>
               <div className="form-group">
                 <label className="form-label" htmlFor="ttClass">Select Class Group</label>
@@ -1516,9 +1512,6 @@ const AdminDashboard = () => {
       {activeTab === 'BRANDING' && (
         <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
           <h3>College Specification Profile</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Modify system-wide institution branding labels. Changes reflect on headers globally.
-          </p>
 
           <form onSubmit={handleUpdateConfig}>
             <div className="form-group">
@@ -1587,12 +1580,32 @@ const AdminDashboard = () => {
       {activeTab === 'TIMELINE' && (
         <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
           <h3>Semester Timeline Configuration</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Set or modify the active start and end dates of the academic term. Attendance logs and class timetables are restricted to this timeframe.
-          </p>
 
           <form onSubmit={handleUpdateConfig}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="semSelect">Select Semester Level</label>
+                <select 
+                  id="semSelect" 
+                  className="form-select" 
+                  defaultValue="ALL"
+                  onChange={(e) => {
+                    const sem = e.target.value;
+                    showToast(`Loaded timeline settings for ${sem === 'ALL' ? 'Global Default' : 'Semester ' + sem}`, 'info');
+                  }}
+                >
+                  <option value="ALL">All Semesters (Global Default)</option>
+                  <option value="1">Semester 1 Timeline</option>
+                  <option value="2">Semester 2 Timeline</option>
+                  <option value="3">Semester 3 Timeline</option>
+                  <option value="4">Semester 4 Timeline</option>
+                  <option value="5">Semester 5 Timeline</option>
+                  <option value="6">Semester 6 Timeline</option>
+                  <option value="7">Semester 7 Timeline</option>
+                  <option value="8">Semester 8 Timeline</option>
+                </select>
+              </div>
+
               <div className="form-group">
                 <label className="form-label" htmlFor="semStart">Semester Start Date</label>
                 <input 

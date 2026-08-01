@@ -730,9 +730,6 @@ const TeacherDashboard = () => {
       {activeTab === 'CLASSES' && (
         <div className="card col-span-12">
           <h3>Assigned Class Groups</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            List of student class groups you teach in the active term.
-          </p>
           {classes.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>No classes assigned to your subjects.</p>
           ) : (
@@ -766,9 +763,6 @@ const TeacherDashboard = () => {
       {activeTab === 'TIMETABLE' && (
         <div className="card col-span-12">
           <h3>My Weekly Teaching Schedule</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Your weekly lecture schedule matching classrooms, classes, and timings.
-          </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
             {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((dayName, index) => {
               const dayIndex = index + 1;
@@ -803,9 +797,6 @@ const TeacherDashboard = () => {
       {activeTab === 'FEES' && (
         <div className="card col-span-12">
           <h3>Student Fee Dues Summary</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            List of student payment invoices and balances for classes you lecture.
-          </p>
           {fees.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>No student fees dues found.</p>
           ) : (
@@ -845,9 +836,6 @@ const TeacherDashboard = () => {
       {activeTab === 'HISTORY' && (
         <div className="card col-span-12">
           <h3>Marked Attendance Sessions Log</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            History log of roll-calls submitted by you.
-          </p>
           {history.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>No history found.</p>
           ) : (
@@ -885,9 +873,6 @@ const TeacherDashboard = () => {
       {activeTab === 'LEAVES' && (
         <div className="card col-span-12">
           <h3>Absence Leave Requests Advisor</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Review pending leave requests filed by students in your class.
-          </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {leaves.length === 0 ? (
               <p style={{ color: 'var(--text-muted)' }}>No leaves requests submitted.</p>
@@ -956,9 +941,6 @@ const TeacherDashboard = () => {
           {/* Post Notice Form */}
           <div className="card col-span-5">
             <h3>Post Announcement</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>
-              Publish announcements globally to the college notice board. Students can view it instantly.
-            </p>
             <form onSubmit={handlePostNotice}>
               <div className="form-group">
                 <label className="form-label" htmlFor="nTitle">Notice Title</label>
