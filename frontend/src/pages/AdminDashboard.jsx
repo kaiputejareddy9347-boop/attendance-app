@@ -1625,6 +1625,52 @@ const AdminDashboard = () => {
           </form>
         </div>
       )}
+
+      {/* TAB: SETTINGS */}
+      {activeTab === 'SETTINGS' && (
+        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <h3>App Settings & Preferences</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
+            {/* Theme selector */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <h4 style={{ fontWeight: '700', marginBottom: '8px' }}>Visual Theme</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>Customize the color palette of your academic dashboard shell.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                <button type="button" className="btn btn-secondary btn-sm" style={{ border: '1px solid var(--accent-primary)', color: '#fff' }}>🌌 Slate Midnight (Active)</button>
+                <button type="button" onClick={() => showToast('Theme changed to Cyber Purple! (Simulation)', 'success')} className="btn btn-secondary btn-sm">👾 Cyber Purple</button>
+                <button type="button" onClick={() => showToast('Theme changed to Forest Emerald! (Simulation)', 'success')} className="btn btn-secondary btn-sm">🌲 Forest Emerald</button>
+                <button type="button" onClick={() => showToast('Theme changed to Oceanic Glass! (Simulation)', 'success')} className="btn btn-secondary btn-sm">🌊 Oceanic Glass</button>
+              </div>
+            </div>
+
+            {/* Notification settings */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <h4 style={{ fontWeight: '700', marginBottom: '12px' }}>Alert Preferences</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                  <span style={{ fontSize: '0.85rem' }}>Push Notifications for attendance</span>
+                  <input type="checkbox" defaultChecked onChange={(e) => showToast(e.target.checked ? 'Push alerts enabled!' : 'Push alerts disabled!', 'info')} />
+                </label>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', borderTop: '1px solid var(--glass-border)', paddingTop: '10px' }}>
+                  <span style={{ fontSize: '0.85rem' }}>Email alerts for fee invoices & gradebook</span>
+                  <input type="checkbox" defaultChecked onChange={(e) => showToast(e.target.checked ? 'Email notifications enabled!' : 'Email notifications disabled!', 'info')} />
+                </label>
+              </div>
+            </div>
+
+            {/* Language settings */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <h4 style={{ fontWeight: '700', marginBottom: '8px' }}>Locale Settings</h4>
+              <select className="form-select" defaultValue="en" onChange={(e) => showToast(`Locale changed to: ${e.target.value.toUpperCase()}`, 'success')}>
+                <option value="en">English (US/IN)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="es">Español (Spanish)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

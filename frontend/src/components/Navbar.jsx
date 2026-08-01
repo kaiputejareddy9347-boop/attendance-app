@@ -111,10 +111,6 @@ const Navbar = () => {
           <nav className="sidebar-links">
             {user.role === 'STUDENT' && (
               <>
-                <Link to="/dashboard?tab=stats" className={`sidebar-link ${isActive('/dashboard', 'stats') ? 'active' : ''}`}>
-                  <LayoutDashboard size={18} />
-                  <span>Dashboard</span>
-                </Link>
                 <Link to="/dashboard?tab=courses" className={`sidebar-link ${isActive('/dashboard', 'courses') ? 'active' : ''}`}>
                   <BookOpen size={18} />
                   <span>Courses</span>
@@ -135,25 +131,13 @@ const Navbar = () => {
                   <FileText size={18} />
                   <span>Leaves</span>
                 </Link>
-                <Link to="/dashboard?tab=notice" className={`sidebar-link ${isActive('/dashboard', 'notice') ? 'active' : ''}`}>
-                  <FileText size={18} style={{ color: 'var(--color-late)' }} />
-                  <span>Notice Board</span>
-                </Link>
-                <Link to="/dashboard?tab=calendar" className={`sidebar-link ${isActive('/dashboard', 'calendar') ? 'active' : ''}`}>
-                  <Calendar size={18} style={{ color: 'var(--accent-secondary)' }} />
-                  <span>Calendar Planner</span>
-                </Link>
                 <Link to="/dashboard?tab=holidays" className={`sidebar-link ${isActive('/dashboard', 'holidays') ? 'active' : ''}`}>
                   <Calendar size={18} style={{ color: 'var(--accent-primary)' }} />
                   <span>Holiday Recess</span>
                 </Link>
-                <Link to="/dashboard?tab=marks" className={`sidebar-link ${isActive('/dashboard', 'marks') ? 'active' : ''}`}>
-                  <Award size={18} style={{ color: 'var(--color-present)' }} />
-                  <span>Exam Marks</span>
-                </Link>
-                <Link to="/dashboard?tab=profile" className={`sidebar-link ${isActive('/dashboard', 'profile') ? 'active' : ''}`}>
-                  <User size={18} />
-                  <span>My Profile</span>
+                <Link to="/dashboard?tab=settings" className={`sidebar-link ${isActive('/dashboard', 'settings') ? 'active' : ''}`}>
+                  <Settings size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Settings</span>
                 </Link>
                 <Link to="/dashboard?tab=branding" className={`sidebar-link ${isActive('/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
@@ -164,14 +148,6 @@ const Navbar = () => {
 
             {user.role === 'TEACHER' && (
               <>
-                <Link to="/teacher/dashboard?tab=stats" className={`sidebar-link ${isActive('/teacher/dashboard', 'stats') ? 'active' : ''}`}>
-                  <LayoutDashboard size={18} />
-                  <span>Dashboard</span>
-                </Link>
-                <Link to="/teacher/dashboard?tab=attendance" className={`sidebar-link ${isActive('/teacher/dashboard', 'attendance') ? 'active' : ''}`}>
-                  <ClipboardCheck size={18} />
-                  <span>Mark Attendance</span>
-                </Link>
                 <Link to="/teacher/dashboard?tab=courses" className={`sidebar-link ${isActive('/teacher/dashboard', 'courses') ? 'active' : ''}`}>
                   <BookOpen size={18} />
                   <span>Courses</span>
@@ -192,25 +168,13 @@ const Navbar = () => {
                   <History size={18} />
                   <span>History</span>
                 </Link>
-                <Link to="/teacher/dashboard?tab=marks" className={`sidebar-link ${isActive('/teacher/dashboard', 'marks') ? 'active' : ''}`}>
-                  <Award size={18} style={{ color: 'var(--color-present)' }} />
-                  <span>Exam Marks</span>
-                </Link>
                 <Link to="/teacher/dashboard?tab=leaves" className={`sidebar-link ${isActive('/teacher/dashboard', 'leaves') ? 'active' : ''}`}>
                   <FileText size={18} />
                   <span>Leave Requests</span>
                 </Link>
-                <Link to="/teacher/dashboard?tab=notice" className={`sidebar-link ${isActive('/teacher/dashboard', 'notice') ? 'active' : ''}`}>
-                  <FileText size={18} style={{ color: 'var(--color-late)' }} />
-                  <span>Notice Board</span>
-                </Link>
-                <Link to="/teacher/dashboard?tab=calendar" className={`sidebar-link ${isActive('/teacher/dashboard', 'calendar') ? 'active' : ''}`}>
-                  <Calendar size={18} style={{ color: 'var(--accent-secondary)' }} />
-                  <span>Calendar Planner</span>
-                </Link>
-                <Link to="/teacher/dashboard?tab=profile" className={`sidebar-link ${isActive('/teacher/dashboard', 'profile') ? 'active' : ''}`}>
-                  <User size={18} />
-                  <span>My Profile</span>
+                <Link to="/teacher/dashboard?tab=settings" className={`sidebar-link ${isActive('/teacher/dashboard', 'settings') ? 'active' : ''}`}>
+                  <Settings size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Settings</span>
                 </Link>
                 <Link to="/teacher/dashboard?tab=branding" className={`sidebar-link ${isActive('/teacher/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
@@ -221,21 +185,9 @@ const Navbar = () => {
 
             {user.role === 'ADMIN' && (
               <>
-                <Link to="/admin/dashboard?tab=stats" className={`sidebar-link ${isActive('/admin/dashboard', 'stats') ? 'active' : ''}`}>
-                  <LayoutDashboard size={18} />
-                  <span>Dashboard</span>
-                </Link>
-                <Link to="/admin/dashboard?tab=classes" className={`sidebar-link ${isActive('/admin/dashboard', 'classes') ? 'active' : ''}`}>
-                  <Layers size={18} />
-                  <span>Classes</span>
-                </Link>
                 <Link to="/admin/dashboard?tab=courses" className={`sidebar-link ${isActive('/admin/dashboard', 'courses') ? 'active' : ''}`}>
                   <BookOpen size={18} />
                   <span>Courses</span>
-                </Link>
-                <Link to="/admin/dashboard?tab=timetable" className={`sidebar-link ${isActive('/admin/dashboard', 'timetable') ? 'active' : ''}`}>
-                  <Clock size={18} />
-                  <span>Timetables</span>
                 </Link>
                 <Link to="/admin/dashboard?tab=exams" className={`sidebar-link ${isActive('/admin/dashboard', 'exams') ? 'active' : ''}`}>
                   <Calendar size={18} />
@@ -249,13 +201,9 @@ const Navbar = () => {
                   <CreditCard size={18} />
                   <span>Fee Dues</span>
                 </Link>
-                <Link to="/admin/dashboard?tab=profile" className={`sidebar-link ${isActive('/admin/dashboard', 'profile') ? 'active' : ''}`}>
-                  <User size={18} />
-                  <span>My Profile</span>
-                </Link>
-                <Link to="/admin/dashboard?tab=timeline" className={`sidebar-link ${isActive('/admin/dashboard', 'timeline') ? 'active' : ''}`}>
-                  <Calendar size={18} style={{ color: 'var(--accent-secondary)' }} />
-                  <span>Semester Timeline</span>
+                <Link to="/admin/dashboard?tab=settings" className={`sidebar-link ${isActive('/admin/dashboard', 'settings') ? 'active' : ''}`}>
+                  <Settings size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Settings</span>
                 </Link>
                 <Link to="/admin/dashboard?tab=branding" className={`sidebar-link ${isActive('/admin/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
@@ -285,7 +233,7 @@ const Navbar = () => {
             </Link>
             <Link to="/dashboard?tab=calendar" className={`mobile-bottom-nav-item ${isActive('/dashboard', 'calendar') ? 'active' : ''}`}>
               <Calendar size={20} />
-              <span>Planner</span>
+              <span>Timetable</span>
             </Link>
             <Link to="/dashboard?tab=marks" className={`mobile-bottom-nav-item ${isActive('/dashboard', 'marks') ? 'active' : ''}`}>
               <Award size={20} />
@@ -295,10 +243,10 @@ const Navbar = () => {
               <FileText size={20} />
               <span>Notices</span>
             </Link>
-            <button onClick={() => setSidebarOpen(true)} className="mobile-bottom-nav-item">
-              <Menu size={20} />
-              <span>Menu</span>
-            </button>
+            <Link to="/dashboard?tab=profile" className={`mobile-bottom-nav-item ${isActive('/dashboard', 'profile') ? 'active' : ''}`}>
+              <User size={20} />
+              <span>Profile</span>
+            </Link>
           </>
         )}
 
@@ -320,10 +268,10 @@ const Navbar = () => {
               <FileText size={20} />
               <span>Notice</span>
             </Link>
-            <button onClick={() => setSidebarOpen(true)} className="mobile-bottom-nav-item">
-              <Menu size={20} />
-              <span>Menu</span>
-            </button>
+            <Link to="/teacher/dashboard?tab=profile" className={`mobile-bottom-nav-item ${isActive('/teacher/dashboard', 'profile') ? 'active' : ''}`}>
+              <User size={20} />
+              <span>Profile</span>
+            </Link>
           </>
         )}
 
@@ -345,10 +293,10 @@ const Navbar = () => {
               <Calendar size={20} />
               <span>Timeline</span>
             </Link>
-            <button onClick={() => setSidebarOpen(true)} className="mobile-bottom-nav-item">
-              <Menu size={20} />
-              <span>Menu</span>
-            </button>
+            <Link to="/admin/dashboard?tab=profile" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'profile') ? 'active' : ''}`}>
+              <User size={20} />
+              <span>Profile</span>
+            </Link>
           </>
         )}
       </nav>
