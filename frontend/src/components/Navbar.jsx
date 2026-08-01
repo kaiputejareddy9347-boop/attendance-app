@@ -241,6 +241,10 @@ const Navbar = () => {
                   <User size={18} />
                   <span>My Profile</span>
                 </Link>
+                <Link to="/admin/dashboard?tab=timeline" className={`sidebar-link ${isActive('/admin/dashboard', 'timeline') ? 'active' : ''}`}>
+                  <Calendar size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Semester Timeline</span>
+                </Link>
                 <Link to="/admin/dashboard?tab=branding" className={`sidebar-link ${isActive('/admin/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
                   <span>Brand Settings</span>

@@ -1582,6 +1582,49 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* TAB: TIMELINE */}
+      {activeTab === 'TIMELINE' && (
+        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <h3>Semester Timeline Configuration</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+            Set or modify the active start and end dates of the academic term. Attendance logs and class timetables are restricted to this timeframe.
+          </p>
+
+          <form onSubmit={handleUpdateConfig}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="semStart">Semester Start Date</label>
+                <input 
+                  id="semStart" 
+                  type="date" 
+                  className="form-input" 
+                  value={semesterStart} 
+                  onChange={(e) => setSemesterStart(e.target.value)} 
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="semEnd">Semester End Date</label>
+                <input 
+                  id="semEnd" 
+                  type="date" 
+                  className="form-input" 
+                  value={semesterEnd} 
+                  onChange={(e) => setSemesterEnd(e.target.value)} 
+                />
+              </div>
+            </div>
+            <button 
+              type="submit" 
+              className="btn btn-primary" 
+              style={{ width: '100%', marginTop: '20px' }} 
+              disabled={updatingConfig}
+            >
+              {updatingConfig ? 'Updating Timeline...' : 'Save Semester Timeline'}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
