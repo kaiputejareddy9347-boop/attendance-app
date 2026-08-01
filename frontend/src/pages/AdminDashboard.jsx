@@ -376,12 +376,22 @@ const AdminDashboard = () => {
     }
   };
 
-  const autoCalcEndTime = (startTimeVal, durationHours) => {
+  const autoCalcEndTime = (startTimeVal, durationPeriods) => {
     if (!startTimeVal) return;
     const [hours, minutes] = startTimeVal.split(':').map(Number);
-    const endHours = (hours + parseInt(durationHours)) % 24;
+    
+    let durationMinutes = 0;
+    if (durationPeriods === '1') durationMinutes = 50;
+    else if (durationPeriods === '2') durationMinutes = 100;
+    else if (durationPeriods === '3') durationMinutes = 150;
+    else durationMinutes = parseInt(durationPeriods) * 60; // fallback
+
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMins = totalMinutes % 60;
+
     const endHoursFormatted = String(endHours).padStart(2, '0');
-    const endMinutesFormatted = String(minutes).padStart(2, '0');
+    const endMinutesFormatted = String(endMins).padStart(2, '0');
     setTtEndTime(`${endHoursFormatted}:${endMinutesFormatted}`);
   };
 
@@ -405,12 +415,18 @@ const AdminDashboard = () => {
     setTtEndTime(slot.endTime);
     setTtRoom(slot.room);
 
-    // Calculate duration based on start/end times
+    // Calculate duration periods based on minute difference (50m, 100m, 150m)
     try {
-      const startHours = parseInt(slot.startTime.split(':')[0]);
-      const endHours = parseInt(slot.endTime.split(':')[0]);
-      const duration = (endHours - startHours + 24) % 24;
-      setTtDuration(String(duration || 2));
+      const [startH, startM] = slot.startTime.split(':').map(Number);
+      const [endH, endM] = slot.endTime.split(':').map(Number);
+      const totalStart = startH * 60 + startM;
+      const totalEnd = endH * 60 + endM;
+      const diffMins = (totalEnd - totalStart + 1440) % 1440;
+      
+      if (diffMins === 50) setTtDuration('1');
+      else if (diffMins === 100) setTtDuration('2');
+      else if (diffMins === 150) setTtDuration('3');
+      else setTtDuration('2'); // default fallback
     } catch (err) {
       setTtDuration('2');
     }
@@ -1134,7 +1150,7 @@ const AdminDashboard = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="ttDuration">Duration (Hours)</label>
+                <label className="form-label" htmlFor="ttDuration">Duration Periods</label>
                 <select 
                   id="ttDuration" 
                   className="form-select" 
@@ -1144,9 +1160,9 @@ const AdminDashboard = () => {
                     autoCalcEndTime(ttStartTime, e.target.value);
                   }}
                 >
-                  <option value="1">1 Hour (Single hour)</option>
-                  <option value="2">2 Hours (Theory Standard / Double hour)</option>
-                  <option value="3">3 Hours (Lab Standard Practical)</option>
+                  <option value="1">50 Minutes (1 Period)</option>
+                  <option value="2">1 Hour 40 Minutes (Theory Standard / 2 Periods)</option>
+                  <option value="3">2 Hours 30 Minutes (Lab Standard / 3 Periods)</option>
                 </select>
               </div>
 
@@ -1176,14 +1192,13 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" htmlFor="ttEnd">End Time (Auto)</label>
+                  <label className="form-label" htmlFor="ttEnd">End Time</label>
                   <input 
                     id="ttEnd" 
                     type="time" 
                     className="form-input" 
                     value={ttEndTime} 
-                    disabled 
-                    style={{ opacity: 0.7, cursor: 'not-allowed' }} 
+                    onChange={(e) => setTtEndTime(e.target.value)}
                   />
                 </div>
               </div>
