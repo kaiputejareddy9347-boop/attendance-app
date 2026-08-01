@@ -440,7 +440,7 @@ router.post('/fees', async (req, res) => {
         data: {
           userId: student.userId,
           title: 'New Fee Dues Allocated',
-          message: `An amount of $${amount} for "${description}" has been invoiced, due on ${new Date(dueDate).toLocaleDateString()}.`,
+          message: `An amount of ₹${amount} for "${description}" has been invoiced, due on ${new Date(dueDate).toLocaleDateString()}.`,
         },
       });
     }

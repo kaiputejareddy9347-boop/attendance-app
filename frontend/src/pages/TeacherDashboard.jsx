@@ -770,7 +770,7 @@ const TeacherDashboard = () => {
                       <td className="attendance-cell" style={{ fontWeight: '600' }}>{f.student.user.name}</td>
                       <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{f.student.rollNumber}</td>
                       <td className="attendance-cell" style={{ color: 'var(--text-secondary)' }}>{f.description}</td>
-                      <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '700' }}>${f.amount.toFixed(2)}</td>
+                      <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '700' }}>₹{f.amount.toFixed(2)}</td>
                       <td className="attendance-cell" style={{ textAlign: 'right' }}>
                         <span className={`badge ${f.status === 'PAID' ? 'badge-present' : 'badge-absent'}`}>
                           {f.status}

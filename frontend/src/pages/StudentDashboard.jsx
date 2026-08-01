@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
-import { Award, Calendar, FileText, Send, CheckCircle, Clock, AlertTriangle, Bell, Check, BookOpen, MapPin, ShieldAlert, CreditCard, DollarSign, Layers, Settings, Landmark } from 'lucide-react';
+import { Award, Calendar, FileText, Send, CheckCircle, Clock, AlertTriangle, Bell, Check, BookOpen, MapPin, ShieldAlert, CreditCard, IndianRupee, Layers, Settings, Landmark } from 'lucide-react';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -538,7 +538,7 @@ const StudentDashboard = () => {
                     <div>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Amount Due</span>
                       <div style={{ fontSize: '1.35rem', fontWeight: '800', display: 'flex', alignItems: 'center', color: fee.status === 'PAID' ? 'var(--color-present)' : '#fff' }}>
-                        <DollarSign size={18} /> {fee.amount.toFixed(2)}
+                        <IndianRupee size={18} /> {fee.amount.toFixed(2)}
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>

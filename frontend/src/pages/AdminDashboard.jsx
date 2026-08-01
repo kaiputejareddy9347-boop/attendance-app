@@ -1450,7 +1450,7 @@ const AdminDashboard = () => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label" htmlFor="feeAmount">Amount ($)</label>
+                  <label className="form-label" htmlFor="feeAmount">Amount (₹)</label>
                   <input id="feeAmount" type="number" step="0.01" className="form-input" placeholder="1250.00" value={feeAmount} onChange={(e) => setFeeAmount(e.target.value)} />
                 </div>
                 <div className="form-group">
@@ -1490,7 +1490,7 @@ const AdminDashboard = () => {
                           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Due: {new Date(f.dueDate).toLocaleDateString()}</div>
                         </td>
                         <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '700' }}>
-                          ${f.amount.toFixed(2)}
+                          ₹{f.amount.toFixed(2)}
                         </td>
                         <td className="attendance-cell" style={{ textAlign: 'right' }}>
                           <button
