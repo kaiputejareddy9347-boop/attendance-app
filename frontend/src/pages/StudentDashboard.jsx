@@ -230,7 +230,7 @@ const StudentDashboard = () => {
       {activeTab === 'STATS' && (
         <div className="dashboard-grid">
           {/* Circular Stats Chart */}
-          <div className="card col-span-4" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="card col-span-12" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
               Overall Attendance
             </h3>
@@ -275,46 +275,6 @@ const StudentDashboard = () => {
             </div>
           </div>
 
-          {/* Notifications Inbox */}
-          <div className="card col-span-8">
-            <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Bell size={20} style={{ color: 'var(--accent-primary)' }} />
-              Notifications
-            </h3>
-            <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {notifications.length === 0 ? (
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No new notifications.</p>
-              ) : (
-                notifications.map((n) => (
-                  <div key={n.id} style={{
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    background: n.isRead ? 'rgba(255,255,255,0.01)' : 'rgba(99, 102, 241, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.03)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <div>
-                      <h5 style={{ fontWeight: '600', fontSize: '0.9rem', color: n.isRead ? 'var(--text-secondary)' : '#fff' }}>{n.title}</h5>
-                      <p style={{ fontSize: '0.8rem', marginTop: '2px', color: 'var(--text-muted)' }}>{n.message}</p>
-                    </div>
-                    {!n.isRead && (
-                      <button
-                        onClick={() => handleMarkAsRead(n.id)}
-                        className="btn btn-secondary"
-                        style={{ padding: '6px', borderRadius: '50%' }}
-                        title="Mark as read"
-                      >
-                        <Check size={14} />
-                      </button>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
           {/* Subject Breakdown Card */}
           <div className="card col-span-12">
             <h3>Attendance Progress Breakdown</h3>
@@ -326,7 +286,7 @@ const StudentDashboard = () => {
                       <span className="subject-code">{subj.subjectCode}</span>
                       <h4 style={{ fontSize: '1rem', marginTop: '6px' }}>{subj.subjectName}</h4>
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        Instructor: {subj.teacherName}
+                        Lecturer: {subj.teacherName}
                       </p>
                     </div>
                     <div style={{
@@ -488,7 +448,7 @@ const StudentDashboard = () => {
                     <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Name</th>
                     <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Code</th>
                     <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester</th>
-                    <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Course Instructor</th>
+                    <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Lecturer</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -543,7 +503,6 @@ const StudentDashboard = () => {
                     <tr>
                       <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Roll Number</th>
                       <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Student Name</th>
-                      <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Email Address</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -551,7 +510,6 @@ const StudentDashboard = () => {
                       <tr key={st.id} className="attendance-row">
                         <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
                         <td className="attendance-cell" style={{ fontWeight: '600' }}>{st.user.name} {st.id === user.student?.id && '(You)'}</td>
-                        <td className="attendance-cell" style={{ textAlign: 'right', color: 'var(--text-secondary)' }}>{st.user.email}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -886,7 +844,7 @@ const StudentDashboard = () => {
         return (
           <div className="dashboard-grid">
             <div className="card col-span-5">
-              <h3>Academic Calendar Tracker</h3>
+              <h3>Today's Timetable</h3>
 
               <div className="form-group">
                 <label className="form-label" htmlFor="planDate">Choose Date</label>
@@ -897,29 +855,6 @@ const StudentDashboard = () => {
                   value={plannerDate} 
                   onChange={(e) => setPlannerDate(e.target.value)} 
                 />
-              </div>
-
-              {/* Semester Validity Box */}
-              <div style={{ marginTop: '20px' }}>
-                {isDateValid ? (
-                  <div style={{ padding: '16px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '10px', color: 'var(--color-present)' }}>
-                    <div style={{ fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <CheckCircle size={18} /> Active Semester Timeline
-                    </div>
-                    <div style={{ fontSize: '0.8rem', marginTop: '4px', opacity: 0.9 }}>
-                      This date is within the registered term dates: <strong>{new Date(collegeConfig?.semesterStart).toLocaleDateString()}</strong> to <strong>{new Date(collegeConfig?.semesterEnd).toLocaleDateString()}</strong>.
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '10px', color: 'var(--color-absent)' }}>
-                    <div style={{ fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <AlertTriangle size={18} /> Outside Semester Timeline
-                    </div>
-                    <div style={{ fontSize: '0.8rem', marginTop: '4px', opacity: 0.9 }}>
-                      Warning: Selected date falls outside academic term limits: <strong>{collegeConfig ? new Date(collegeConfig.semesterStart).toLocaleDateString() : 'N/A'}</strong> to <strong>{collegeConfig ? new Date(collegeConfig.semesterEnd).toLocaleDateString() : 'N/A'}</strong>.
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 

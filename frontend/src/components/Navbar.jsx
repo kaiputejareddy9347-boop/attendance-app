@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User, Award } from 'lucide-react';
+import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User, Award, Bell, Check } from 'lucide-react';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -10,12 +10,27 @@ const Navbar = () => {
   const location = useLocation();
   const [collegeConfig, setCollegeConfig] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await axios.get('/api/notifications');
+      setNotifications(res.data);
+    } catch (err) {
+      console.error('Error fetching notifications', err);
+    }
+  };
 
   useEffect(() => {
     if (user) {
       axios.get('/api/college/config')
         .then(res => setCollegeConfig(res.data))
         .catch(err => console.error('Error loading config', err));
+
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 15000);
+      return () => clearInterval(interval);
     }
   }, [user]);
 
@@ -30,6 +45,17 @@ const Navbar = () => {
     logout();
     navigate('/login');
   };
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await axios.put(`/api/notifications/${id}/read`);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (err) {
+      console.error('Error marking read', err);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const isActive = (path, tab = null) => {
     if (tab) {
@@ -59,13 +85,99 @@ const Navbar = () => {
           <ClipboardCheck size={20} style={{ color: 'var(--accent-primary)' }} />
           <span style={{ fontSize: '0.95rem', fontWeight: 800 }}>{collegeConfig ? collegeConfig.code : 'Attendance'}</span>
         </Link>
-        <button 
-          onClick={handleLogout} 
-          style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '6px' }}
-          title="Log Out"
-        >
-          <LogOut size={18} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {/* Notification Bell */}
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setShowNotifDropdown(!showNotifDropdown)} 
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '6px', position: 'relative' }}
+              title="Notifications"
+            >
+              <Bell size={18} />
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '2px',
+                  background: 'var(--color-absent)',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  width: '14px',
+                  height: '14px',
+                  fontSize: '0.6rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: '800'
+                }}>
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Dropdown Menu */}
+            {showNotifDropdown && (
+              <div style={{
+                position: 'absolute',
+                top: '36px',
+                right: '0',
+                width: '280px',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '12px',
+                padding: '16px',
+                zIndex: 2000,
+                boxShadow: '0 10px 30px rgba(0,0,0,0.6)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: '700' }}>Notifications</h4>
+                  <button onClick={() => setShowNotifDropdown(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <X size={14} />
+                  </button>
+                </div>
+                <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {notifications.length === 0 ? (
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No notifications</p>
+                  ) : (
+                    notifications.map(n => (
+                      <div key={n.id} style={{
+                        padding: '10px',
+                        borderRadius: '8px',
+                        background: n.isRead ? 'transparent' : 'rgba(99, 102, 241, 0.08)',
+                        border: '1px solid var(--glass-border)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div>
+                          <div style={{ fontWeight: '600', fontSize: '0.8rem', color: n.isRead ? 'var(--text-secondary)' : '#fff' }}>{n.title}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{n.message}</div>
+                        </div>
+                        {!n.isRead && (
+                          <button
+                            onClick={() => handleMarkAsRead(n.id)}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--accent-secondary)', cursor: 'pointer', padding: '4px' }}
+                            title="Mark as read"
+                          >
+                            <Check size={14} />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button 
+            onClick={handleLogout} 
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '6px' }}
+            title="Log Out"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Sidebar Overlay (Mobile Backdrop) */}
