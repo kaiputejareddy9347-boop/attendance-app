@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useToast } from '../components/Toast';
-import { Settings, Plus, Users, BookOpen, Layers, History, Calendar, CreditCard, Landmark, Trash2, Clock, Edit2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Settings, Plus, Users, BookOpen, Layers, History, Calendar, CreditCard, Landmark, Trash2, Clock, Edit2, User } from 'lucide-react';
 
 const AdminDashboard = () => {
+  const { user } = useAuth();
   const { showToast } = useToast();
   
   const [searchParams, setSearchParams] = useSearchParams();
@@ -1500,6 +1502,36 @@ const AdminDashboard = () => {
               Save Specifications
             </button>
           </form>
+        </div>
+      )}
+
+      {/* TAB 9: PROFILE */}
+      {activeTab === 'PROFILE' && (
+        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+          <div className="profile-avatar" style={{ margin: '0 auto 20px', width: '80px', height: '80px', fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%)' }}>
+            {user?.name?.charAt(0) || 'A'}
+          </div>
+          <h3 style={{ marginBottom: '4px' }}>Administrative Profile</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '24px' }}>
+            Registrar Account Credentials & Specifications
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Full Name</span>
+              <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>{user?.name}</div>
+            </div>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email Address</span>
+              <div style={{ fontWeight: '600', marginTop: '4px' }}>{user?.email}</div>
+            </div>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Security Level / System Role</span>
+              <div style={{ fontWeight: '700', color: 'var(--color-present)', marginTop: '4px' }}>
+                SYSTEM ADMINISTRATOR
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

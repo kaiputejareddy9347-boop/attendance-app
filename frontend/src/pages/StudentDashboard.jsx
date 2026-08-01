@@ -700,6 +700,46 @@ const StudentDashboard = () => {
           )}
         </div>
       )}
+
+      {/* TAB 9: PROFILE */}
+      {activeTab === 'PROFILE' && (
+        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+          <div className="profile-avatar" style={{ margin: '0 auto 20px', width: '80px', height: '80px', fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%)' }}>
+            {user?.name?.charAt(0) || 'S'}
+          </div>
+          <h3 style={{ marginBottom: '4px' }}>Student Profile</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '24px' }}>
+            Enrolled Student Credentials & Registration Specs
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Full Name</span>
+              <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>{user?.name}</div>
+            </div>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email Address</span>
+              <div style={{ fontWeight: '600', marginTop: '4px' }}>{user?.email}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Roll Number</span>
+                <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px', color: 'var(--accent-secondary)' }}>{user?.student?.rollNumber || 'N/A'}</div>
+              </div>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Current Semester</span>
+                <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>Semester {studentClass?.semester || 1}</div>
+              </div>
+            </div>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Class Group / Department</span>
+              <div style={{ fontWeight: '600', marginTop: '4px' }}>
+                {studentClass?.name} ({studentClass?.department})
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

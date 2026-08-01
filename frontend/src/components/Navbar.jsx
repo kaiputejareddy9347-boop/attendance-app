@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard } from 'lucide-react';
+import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User } from 'lucide-react';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -139,6 +139,10 @@ const Navbar = () => {
                   <FileText size={18} style={{ color: 'var(--color-late)' }} />
                   <span>Notice Board</span>
                 </Link>
+                <Link to="/dashboard?tab=profile" className={`sidebar-link ${isActive('/dashboard', 'profile') ? 'active' : ''}`}>
+                  <User size={18} />
+                  <span>My Profile</span>
+                </Link>
                 <Link to="/dashboard?tab=branding" className={`sidebar-link ${isActive('/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
                   <span>Brand Info</span>
@@ -184,6 +188,10 @@ const Navbar = () => {
                   <FileText size={18} style={{ color: 'var(--color-late)' }} />
                   <span>Notice Board</span>
                 </Link>
+                <Link to="/teacher/dashboard?tab=profile" className={`sidebar-link ${isActive('/teacher/dashboard', 'profile') ? 'active' : ''}`}>
+                  <User size={18} />
+                  <span>My Profile</span>
+                </Link>
                 <Link to="/teacher/dashboard?tab=branding" className={`sidebar-link ${isActive('/teacher/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
                   <span>Brand Info</span>
@@ -220,6 +228,10 @@ const Navbar = () => {
                 <Link to="/admin/dashboard?tab=fees" className={`sidebar-link ${isActive('/admin/dashboard', 'fees') ? 'active' : ''}`}>
                   <CreditCard size={18} />
                   <span>Fee Dues</span>
+                </Link>
+                <Link to="/admin/dashboard?tab=profile" className={`sidebar-link ${isActive('/admin/dashboard', 'profile') ? 'active' : ''}`}>
+                  <User size={18} />
+                  <span>My Profile</span>
                 </Link>
                 <Link to="/admin/dashboard?tab=branding" className={`sidebar-link ${isActive('/admin/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />

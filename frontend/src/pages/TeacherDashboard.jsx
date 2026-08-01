@@ -883,6 +883,50 @@ const TeacherDashboard = () => {
           )}
         </div>
       )}
+
+      {/* TAB 11: PROFILE */}
+      {activeTab === 'PROFILE' && (
+        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+          <div className="profile-avatar" style={{ margin: '0 auto 20px', width: '80px', height: '80px', fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%)' }}>
+            {user?.name?.charAt(0) || 'T'}
+          </div>
+          <h3 style={{ marginBottom: '4px' }}>Instructor Profile</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '24px' }}>
+            Faculty Credentials & Assigned Course Summary
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Full Name</span>
+              <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>{user?.name}</div>
+            </div>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email Address</span>
+              <div style={{ fontWeight: '600', marginTop: '4px' }}>{user?.email}</div>
+            </div>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Faculty Employee ID</span>
+              <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px', color: 'var(--accent-secondary)' }}>{user?.teacher?.employeeId || 'N/A'}</div>
+            </div>
+            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Subjects Under Instruction</span>
+              <div style={{ fontWeight: '600', marginTop: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                {subjects.length > 0 ? (
+                  <ul style={{ paddingLeft: '20px', margin: '4px 0 0 0' }}>
+                    {subjects.map(sub => (
+                      <li key={sub.id} style={{ marginBottom: '4px' }}>
+                        <strong>{sub.code}</strong> - {sub.name} [Sem {sub.semester}]
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  'No subjects assigned'
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
