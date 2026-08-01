@@ -488,4 +488,121 @@ router.get('/fees', async (req, res) => {
   }
 });
 
+// Retrieve teacher exams list
+router.get('/exams', async (req, res) => {
+  try {
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId: req.user.userId },
+      include: { subjects: true },
+    });
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher profile not found.' });
+    }
+    const subjectIds = teacher.subjects.map(s => s.id);
+    const exams = await prisma.exam.findMany({
+      where: { subjectId: { in: subjectIds } },
+      include: {
+        subject: true,
+      },
+      orderBy: { date: 'asc' },
+    });
+    res.json(exams);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving exams.', error: error.message });
+  }
+});
+
+// Retrieve student roster & marks for specific exam
+router.get('/exams/:examId/marks', async (req, res) => {
+  try {
+    const { examId } = req.params;
+    const exam = await prisma.exam.findUnique({
+      where: { id: examId },
+      include: { subject: true },
+    });
+    if (!exam) {
+      return res.status(404).json({ message: 'Exam not found.' });
+    }
+
+    const timetableSlots = await prisma.timetableSlot.findMany({
+      where: { subjectId: exam.subjectId },
+      select: { classId: true },
+    });
+    const classIds = [...new Set(timetableSlots.map(s => s.classId))];
+
+    const students = await prisma.student.findMany({
+      where: { classId: { in: classIds } },
+      include: {
+        user: { select: { name: true, email: true } },
+      },
+      orderBy: { rollNumber: 'asc' },
+    });
+
+    const existingMarks = await prisma.examMark.findMany({
+      where: { examId },
+    });
+
+    const studentsWithMarks = students.map(st => {
+      const markRec = existingMarks.find(m => m.studentId === st.id);
+      return {
+        studentId: st.id,
+        name: st.user.name,
+        rollNumber: st.rollNumber,
+        marks: markRec ? markRec.marks : '',
+        maxMarks: markRec ? markRec.maxMarks : 100,
+        remarks: markRec ? markRec.remarks || '' : '',
+        isMarked: !!markRec,
+      };
+    });
+
+    res.json({
+      exam,
+      students: studentsWithMarks,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error loading student exam marks.', error: error.message });
+  }
+});
+
+// Update or save marks for an exam
+router.post('/exams/:examId/marks', async (req, res) => {
+  try {
+    const { examId } = req.params;
+    const { marks } = req.body;
+
+    if (!Array.isArray(marks)) {
+      return res.status(400).json({ message: 'marks array is required.' });
+    }
+
+    const savedMarks = await prisma.$transaction(
+      marks.map((m) =>
+        prisma.examMark.upsert({
+          where: {
+            examId_studentId: {
+              examId,
+              studentId: m.studentId,
+            },
+          },
+          update: {
+            marks: parseFloat(m.marks),
+            maxMarks: parseFloat(m.maxMarks || 100),
+            remarks: m.remarks || '',
+          },
+          create: {
+            examId,
+            studentId: m.studentId,
+            marks: parseFloat(m.marks),
+            maxMarks: parseFloat(m.maxMarks || 100),
+            remarks: m.remarks || '',
+          },
+        })
+      )
+    );
+
+    res.json({ message: 'Marks updated successfully.', count: savedMarks.length });
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving student marks.', error: error.message });
+  }
+});
+
 export default router;

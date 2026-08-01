@@ -63,6 +63,7 @@ model Student {
   attendance Attendance[]
   leaves     LeaveRequest[]
   fees       FeeDue[]
+  examMarks  ExamMark[]
 }
 
 model Teacher {
@@ -142,6 +143,20 @@ model Exam {
   subjectId String
   subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   room      String   
+  marks     ExamMark[]
+}
+
+model ExamMark {
+  id        String   @id @default(uuid())
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  marks     Float
+  maxMarks  Float    @default(100)
+  remarks   String?  
+
+  @@unique([examId, studentId])
 }
 
 model Holiday {

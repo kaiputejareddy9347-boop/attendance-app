@@ -54,6 +54,11 @@ const TeacherDashboard = () => {
   const [plannerDate, setPlannerDate] = useState(new Date().toISOString().split('T')[0]);
   const [dateAttendance, setDateAttendance] = useState([]);
   const [loadingDateAtt, setLoadingDateAtt] = useState(false);
+  const [loadingExams, setLoadingExams] = useState(false);
+  const [selectedExam, setSelectedExam] = useState(null);
+  const [marksRoster, setMarksRoster] = useState([]);
+  const [loadingMarksRoster, setLoadingMarksRoster] = useState(false);
+  const [savingMarks, setSavingMarks] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'CALENDAR') {
@@ -70,6 +75,57 @@ const TeacherDashboard = () => {
       console.error('Error fetching date attendance logs', err);
     } finally {
       setLoadingDateAtt(false);
+    }
+  };
+
+  const fetchTeacherExams = async () => {
+    setLoadingExams(true);
+    try {
+      const res = await axios.get('/api/teacher/exams');
+      setExams(res.data);
+    } catch (err) {
+      console.error('Error fetching teacher exams', err);
+    } finally {
+      setLoadingExams(false);
+    }
+  };
+
+  const fetchExamMarksRoster = async (examId) => {
+    setLoadingMarksRoster(true);
+    try {
+      const res = await axios.get(`/api/teacher/exams/${examId}/marks`);
+      setSelectedExam(res.data.exam);
+      setMarksRoster(res.data.students);
+    } catch (err) {
+      console.error('Error fetching marks roster', err);
+      showToast('Failed to load students roster.', 'error');
+    } finally {
+      setLoadingMarksRoster(false);
+    }
+  };
+
+  const handleMarkChange = (studentId, field, value) => {
+    setMarksRoster(prev => prev.map(m => m.studentId === studentId ? { ...m, [field]: value } : m));
+  };
+
+  const handleSaveMarks = async (e) => {
+    e.preventDefault();
+    setSavingMarks(true);
+    try {
+      const payload = marksRoster.map(r => ({
+        studentId: r.studentId,
+        marks: r.marks === '' ? 0 : parseFloat(r.marks),
+        maxMarks: parseFloat(r.maxMarks || 100),
+        remarks: r.remarks || '',
+      }));
+      await axios.post(`/api/teacher/exams/${selectedExam.id}/marks`, { marks: payload });
+      showToast('Exam marks saved and published successfully.', 'success');
+      fetchExamMarksRoster(selectedExam.id);
+    } catch (err) {
+      console.error('Error saving marks', err);
+      showToast('Failed to save exam marks.', 'error');
+    } finally {
+      setSavingMarks(false);
     }
   };
 
@@ -1181,6 +1237,148 @@ const TeacherDashboard = () => {
           </div>
         );
       })()}
+      {/* TAB: EXAM MARKS */}
+      {activeTab === 'MARKS' && (
+        <div className="card col-span-12">
+          {!selectedExam ? (
+            <>
+              <h3>Exam Marks Registry</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+                Select a scheduled exam from your courses to log, modify, or publish student scores.
+              </p>
+
+              {loadingExams ? (
+                <p>Loading exams...</p>
+              ) : exams.length === 0 ? (
+                <div style={{ padding: '40px', border: '1px dashed var(--glass-border)', borderRadius: '12px', textAlign: 'center' }}>
+                  <p style={{ color: 'var(--text-muted)' }}>No scheduled exams found for your registered courses.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                  {exams.map((ex) => (
+                    <div key={ex.id} style={{
+                      padding: '20px',
+                      borderRadius: '12px',
+                      background: 'rgba(255,255,255,0.01)',
+                      border: '1px solid var(--glass-border)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }}>
+                      <div>
+                        <span className="subject-code" style={{ fontSize: '0.75rem' }}>{ex.subject.code}</span>
+                        <h4 style={{ fontWeight: '700', fontSize: '1.1rem', color: '#fff', margin: '6px 0' }}>{ex.name}</h4>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Course: {ex.subject.name}</p>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                          <div>Date: <strong>{new Date(ex.date).toLocaleDateString()}</strong></div>
+                          <div>Time: <strong>{ex.startTime} - {ex.endTime}</strong></div>
+                          <div>Room: <strong>{ex.room}</strong></div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => fetchExamMarksRoster(ex.id)}
+                        className="btn btn-primary btn-sm"
+                        style={{ marginTop: '16px', width: '100%' }}
+                      >
+                        Enter Marks
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <button
+                    onClick={() => { setSelectedExam(null); fetchTeacherExams(); }}
+                    className="btn btn-secondary btn-sm"
+                    style={{ marginBottom: '8px' }}
+                  >
+                    ← Back to Exams List
+                  </button>
+                  <h3>Enter Marks: {selectedExam.name}</h3>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)', fontWeight: '600' }}>
+                    Subject: {selectedExam.subject.name} ({selectedExam.subject.code})
+                  </span>
+                </div>
+              </div>
+
+              {loadingMarksRoster ? (
+                <p>Loading students roster...</p>
+              ) : (
+                <form onSubmit={handleSaveMarks}>
+                  <div style={{ overflowX: 'auto', maxHeight: '450px', overflowY: 'auto' }}>
+                    <table className="attendance-list">
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Roll No</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Student Name</th>
+                          <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)', width: '150px' }}>Max Marks</th>
+                          <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)', width: '150px' }}>Marks Scored</th>
+                          <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)', width: '300px' }}>Remarks / Feedback</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {marksRoster.map((st) => (
+                          <tr key={st.studentId} className="attendance-row">
+                            <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
+                            <td className="attendance-cell" style={{ fontWeight: '600' }}>{st.name}</td>
+                            <td className="attendance-cell" style={{ textAlign: 'center' }}>
+                              <input
+                                type="number"
+                                className="form-input"
+                                style={{ width: '80px', textAlign: 'center', margin: '0 auto' }}
+                                value={st.maxMarks}
+                                onChange={(e) => handleMarkChange(st.studentId, 'maxMarks', e.target.value)}
+                                min="0"
+                                required
+                              />
+                            </td>
+                            <td className="attendance-cell" style={{ textAlign: 'center' }}>
+                              <input
+                                type="number"
+                                className="form-input"
+                                style={{ width: '80px', textAlign: 'center', margin: '0 auto', border: '1px solid var(--accent-secondary)' }}
+                                value={st.marks}
+                                onChange={(e) => handleMarkChange(st.studentId, 'marks', e.target.value)}
+                                min="0"
+                                max={st.maxMarks}
+                                placeholder="0"
+                                required
+                              />
+                            </td>
+                            <td className="attendance-cell" style={{ textAlign: 'right' }}>
+                              <input
+                                type="text"
+                                className="form-input"
+                                style={{ width: '100%' }}
+                                placeholder="e.g. Excellent work, Needs improvement"
+                                value={st.remarks}
+                                onChange={(e) => handleMarkChange(st.studentId, 'remarks', e.target.value)}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{ width: '100%', marginTop: '24px' }}
+                    disabled={savingMarks}
+                  >
+                    {savingMarks ? 'Publishing Student Marks...' : 'Save & Publish Exam Marks'}
+                  </button>
+                </form>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -110,10 +110,10 @@ const StudentDashboard = () => {
     }
 
     try {
-      const examsRes = await axios.get('/api/student/exams');
+      const examsRes = await axios.get('/api/student/exams/marks');
       setExams(examsRes.data);
     } catch (err) {
-      console.error('Error fetching student exams', err);
+      console.error('Error fetching student exam marks', err);
     }
 
     try {
@@ -1008,6 +1008,80 @@ const StudentDashboard = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+      {/* TAB: EXAM MARKS */}
+      {activeTab === 'MARKS' && (
+        <div className="card col-span-12">
+          <h3>Academic Exam Marks</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+            View your registered scores, maximum weightage marks, and course remarks for scheduled semester exams.
+          </p>
+
+          {exams.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)' }}>No exam records published currently.</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="attendance-list">
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Exam Name</th>
+                    <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Date & Time</th>
+                    <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Room</th>
+                    <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Marks Obtained</th>
+                    <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {exams.map((ex) => {
+                    const percentage = ex.isPublished ? Math.round((ex.marks / ex.maxMarks) * 100) : null;
+                    let marksColor = 'var(--text-primary)';
+                    let marksLabel = `${ex.marks} / ${ex.maxMarks}`;
+
+                    if (!ex.isPublished) {
+                      marksColor = 'var(--text-muted)';
+                      marksLabel = 'Awaiting';
+                    } else if (percentage >= 75) {
+                      marksColor = 'var(--color-present)';
+                    } else if (percentage < 40) {
+                      marksColor = 'var(--color-absent)';
+                    }
+
+                    return (
+                      <tr key={ex.examId} className="attendance-row">
+                        <td className="attendance-cell">
+                          <div style={{ fontWeight: '600' }}>{ex.subjectName}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{ex.subjectCode}</div>
+                        </td>
+                        <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>
+                          {ex.examName}
+                        </td>
+                        <td className="attendance-cell" style={{ textAlign: 'center' }}>
+                          <div>{new Date(ex.date).toLocaleDateString()}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            {ex.startTime} - {ex.endTime}
+                          </div>
+                        </td>
+                        <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '600' }}>{ex.room}</td>
+                        <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '800', color: marksColor }}>
+                          {marksLabel}
+                          {ex.isPublished && (
+                            <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: '500', color: 'var(--text-muted)', marginTop: '2px' }}>
+                              ({percentage}%)
+                            </span>
+                          )}
+                        </td>
+                        <td className="attendance-cell" style={{ textAlign: 'right', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                          {ex.isPublished ? (ex.remarks || 'No remarks') : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

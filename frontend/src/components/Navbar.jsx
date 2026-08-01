@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User } from 'lucide-react';
+import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User, Award } from 'lucide-react';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -147,6 +147,10 @@ const Navbar = () => {
                   <Calendar size={18} style={{ color: 'var(--accent-primary)' }} />
                   <span>Holiday Recess</span>
                 </Link>
+                <Link to="/dashboard?tab=marks" className={`sidebar-link ${isActive('/dashboard', 'marks') ? 'active' : ''}`}>
+                  <Award size={18} style={{ color: 'var(--color-present)' }} />
+                  <span>Exam Marks</span>
+                </Link>
                 <Link to="/dashboard?tab=profile" className={`sidebar-link ${isActive('/dashboard', 'profile') ? 'active' : ''}`}>
                   <User size={18} />
                   <span>My Profile</span>
@@ -187,6 +191,10 @@ const Navbar = () => {
                 <Link to="/teacher/dashboard?tab=history" className={`sidebar-link ${isActive('/teacher/dashboard', 'history') ? 'active' : ''}`}>
                   <History size={18} />
                   <span>History</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=marks" className={`sidebar-link ${isActive('/teacher/dashboard', 'marks') ? 'active' : ''}`}>
+                  <Award size={18} style={{ color: 'var(--color-present)' }} />
+                  <span>Exam Marks</span>
                 </Link>
                 <Link to="/teacher/dashboard?tab=leaves" className={`sidebar-link ${isActive('/teacher/dashboard', 'leaves') ? 'active' : ''}`}>
                   <FileText size={18} />

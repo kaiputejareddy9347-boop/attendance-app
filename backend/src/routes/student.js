@@ -328,4 +328,49 @@ router.get('/classmates', async (req, res) => {
   }
 });
 
+// GET exam marks for the logged-in student
+router.get('/exams/marks', async (req, res) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { userId: req.user.userId },
+    });
+    if (!student) {
+      return res.status(404).json({ message: 'Student profile not found.' });
+    }
+
+    const exams = await prisma.exam.findMany({
+      include: {
+        subject: true,
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    const marks = await prisma.examMark.findMany({
+      where: { studentId: student.id },
+    });
+
+    const examsWithMarks = exams.map(ex => {
+      const markRec = marks.find(m => m.examId === ex.id);
+      return {
+        examId: ex.id,
+        examName: ex.name,
+        date: ex.date,
+        startTime: ex.startTime,
+        endTime: ex.endTime,
+        room: ex.room,
+        subjectName: ex.subject.name,
+        subjectCode: ex.subject.code,
+        marks: markRec ? markRec.marks : null,
+        maxMarks: markRec ? markRec.maxMarks : 100,
+        remarks: markRec ? markRec.remarks : null,
+        isPublished: !!markRec,
+      };
+    });
+
+    res.json(examsWithMarks);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving student exam marks.', error: error.message });
+  }
+});
+
 export default router;
