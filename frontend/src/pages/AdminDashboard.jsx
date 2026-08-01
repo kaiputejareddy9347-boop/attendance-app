@@ -9,6 +9,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('STATS');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeDirectory, setActiveDirectory] = useState('CLASSES');
   
   // Listings data
   const [classes, setClasses] = useState([]);
@@ -401,25 +402,271 @@ const AdminDashboard = () => {
       {/* TAB 1: OVERVIEW STATS */}
       {activeTab === 'STATS' && (
         <div className="dashboard-grid">
+          {/* Clickable metric cards */}
           <div className="col-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '8px' }}>
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div 
+              className="card" 
+              onClick={() => setActiveDirectory('STUDENTS')}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '16px', 
+                cursor: 'pointer',
+                border: activeDirectory === 'STUDENTS' ? '1.5px solid var(--accent-primary)' : '1px solid var(--glass-border)',
+                background: activeDirectory === 'STUDENTS' ? 'rgba(99, 102, 241, 0.05)' : 'rgba(255,255,255,0.02)',
+                transition: 'all 0.2s ease'
+              }}
+            >
               <div style={{ background: 'var(--accent-primary-glow)', color: 'var(--accent-primary)', padding: '12px', borderRadius: '12px' }}><Users size={24} /></div>
               <div><span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Students</span><div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{counts.students}</div></div>
             </div>
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            
+            <div 
+              className="card" 
+              onClick={() => setActiveDirectory('TEACHERS')}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '16px', 
+                cursor: 'pointer',
+                border: activeDirectory === 'TEACHERS' ? '1.5px solid var(--accent-secondary)' : '1px solid var(--glass-border)',
+                background: activeDirectory === 'TEACHERS' ? 'rgba(6, 182, 212, 0.05)' : 'rgba(255,255,255,0.02)',
+                transition: 'all 0.2s ease'
+              }}
+            >
               <div style={{ background: 'var(--accent-secondary-glow)', color: 'var(--accent-secondary)', padding: '12px', borderRadius: '12px' }}><Users size={24} /></div>
               <div><span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Faculty</span><div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{counts.teachers}</div></div>
             </div>
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            
+            <div 
+              className="card" 
+              onClick={() => setActiveDirectory('CLASSES')}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '16px', 
+                cursor: 'pointer',
+                border: activeDirectory === 'CLASSES' ? '1.5px solid var(--color-present)' : '1px solid var(--glass-border)',
+                background: activeDirectory === 'CLASSES' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.02)',
+                transition: 'all 0.2s ease'
+              }}
+            >
               <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-present)', padding: '12px', borderRadius: '12px' }}><Layers size={24} /></div>
               <div><span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Classes</span><div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{counts.classes}</div></div>
             </div>
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            
+            <div 
+              className="card" 
+              onClick={() => setActiveDirectory('SUBJECTS')}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '16px', 
+                cursor: 'pointer',
+                border: activeDirectory === 'SUBJECTS' ? '1.5px solid var(--color-late)' : '1px solid var(--glass-border)',
+                background: activeDirectory === 'SUBJECTS' ? 'rgba(245, 158, 11, 0.05)' : 'rgba(255,255,255,0.02)',
+                transition: 'all 0.2s ease'
+              }}
+            >
               <div style={{ background: 'rgba(245, 158, 11, 0.1)', color: 'var(--color-late)', padding: '12px', borderRadius: '12px' }}><BookOpen size={24} /></div>
               <div><span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Subjects</span><div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{counts.subjects}</div></div>
             </div>
           </div>
 
+          {/* Directory Tab Selector Buttons */}
+          <div className="col-span-12" style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+            <button onClick={() => setActiveDirectory('CLASSES')} className={`tab-btn ${activeDirectory === 'CLASSES' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Layers size={14} /> Classes</button>
+            <button onClick={() => setActiveDirectory('DEPARTMENTS')} className={`tab-btn ${activeDirectory === 'DEPARTMENTS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Landmark size={14} /> Departments</button>
+            <button onClick={() => setActiveDirectory('SUBJECTS')} className={`tab-btn ${activeDirectory === 'SUBJECTS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><BookOpen size={14} /> Subjects</button>
+            <button onClick={() => setActiveDirectory('TEACHERS')} className={`tab-btn ${activeDirectory === 'TEACHERS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Users size={14} /> Faculty</button>
+            <button onClick={() => setActiveDirectory('STUDENTS')} className={`tab-btn ${activeDirectory === 'STUDENTS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Users size={14} /> Enrolled Students</button>
+          </div>
+
+          {/* Active Directory Listings Table Container */}
+          <div className="card col-span-12" style={{ marginTop: '0px' }}>
+            {activeDirectory === 'CLASSES' && (
+              <>
+                <h3 style={{ marginBottom: '16px' }}>Classes Directory ({classes.length} Groups)</h3>
+                {classes.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No class groups registered.</p>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="attendance-list">
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Class Name</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Department</th>
+                          <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester</th>
+                          <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Enrolled Students</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {classes.map((c) => (
+                          <tr key={c.id} className="attendance-row">
+                            <td className="attendance-cell" style={{ fontWeight: '600' }}>{c.name}</td>
+                            <td className="attendance-cell" style={{ color: 'var(--text-secondary)' }}>{c.department}</td>
+                            <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '700', color: 'var(--accent-secondary)' }}>Sem {c.semester}</td>
+                            <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '600' }}>{c._count?.students ?? 0} Students</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeDirectory === 'DEPARTMENTS' && (() => {
+              // Extract unique departments and calculate metrics
+              const deptSummary = {};
+              classes.forEach(c => {
+                if (!deptSummary[c.department]) {
+                  deptSummary[c.department] = { classesCount: 0, totalStudents: 0, classNames: [] };
+                }
+                deptSummary[c.department].classesCount += 1;
+                deptSummary[c.department].totalStudents += (c._count?.students ?? 0);
+                deptSummary[c.department].classNames.push(`${c.name} (Sem ${c.semester})`);
+              });
+
+              const deptNames = Object.keys(deptSummary);
+
+              return (
+                <>
+                  <h3 style={{ marginBottom: '16px' }}>Departments Directory ({deptNames.length} Departments)</h3>
+                  {deptNames.length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No departments found.</p>
+                  ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table className="attendance-list">
+                        <thead>
+                          <tr>
+                            <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Department Name</th>
+                            <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Associated Class Groups</th>
+                            <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Total Classes</th>
+                            <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Total Students</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {deptNames.map((deptName) => (
+                            <tr key={deptName} className="attendance-row">
+                              <td className="attendance-cell" style={{ fontWeight: '600', color: 'var(--color-present)' }}>{deptName}</td>
+                              <td className="attendance-cell" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                                {deptSummary[deptName].classNames.join(', ')}
+                              </td>
+                              <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '600' }}>{deptSummary[deptName].classesCount} Classes</td>
+                              <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '700' }}>{deptSummary[deptName].totalStudents} Students</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
+            {activeDirectory === 'SUBJECTS' && (
+              <>
+                <h3 style={{ marginBottom: '16px' }}>Course Subjects Directory ({subjects.length} Subjects)</h3>
+                {subjects.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No subjects registered.</p>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="attendance-list">
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Name</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Code</th>
+                          <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester</th>
+                          <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Assigned Faculty</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {subjects.map((sub) => (
+                          <tr key={sub.id} className="attendance-row">
+                            <td className="attendance-cell" style={{ fontWeight: '600' }}>{sub.name}</td>
+                            <td className="attendance-cell" style={{ fontWeight: '600', color: 'var(--accent-secondary)' }}>{sub.code}</td>
+                            <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '700' }}>Sem {sub.semester}</td>
+                            <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '600' }}>{sub.teacher?.user?.name || 'N/A'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeDirectory === 'TEACHERS' && (
+              <>
+                <h3 style={{ marginBottom: '16px' }}>Faculty Directory ({teachers.length} Instructors)</h3>
+                {teachers.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No faculty registered.</p>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="attendance-list">
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Faculty Name</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Email Address</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Employee ID</th>
+                          <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Assigned Courses</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {teachers.map((t) => (
+                          <tr key={t.id} className="attendance-row">
+                            <td className="attendance-cell" style={{ fontWeight: '600' }}>{t.user?.name}</td>
+                            <td className="attendance-cell" style={{ color: 'var(--text-secondary)' }}>{t.user?.email}</td>
+                            <td className="attendance-cell" style={{ fontWeight: '600', color: 'var(--accent-secondary)' }}>{t.employeeId}</td>
+                            <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '500' }}>
+                              {t.subjects && t.subjects.length > 0 
+                                ? t.subjects.map(s => s.code).join(', ') 
+                                : 'No subjects assigned'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeDirectory === 'STUDENTS' && (
+              <>
+                <h3 style={{ marginBottom: '16px' }}>Students Directory ({students.length} Enrolled)</h3>
+                {students.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No students registered.</p>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="attendance-list">
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Roll No</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Student Name</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Email</th>
+                          <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Class Group</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {students.map((st) => (
+                          <tr key={st.id} className="attendance-row">
+                            <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
+                            <td className="attendance-cell" style={{ fontWeight: '600' }}>{st.user?.name}</td>
+                            <td className="attendance-cell" style={{ color: 'var(--text-muted)' }}>{st.user?.email}</td>
+                            <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '600' }}>{st.class?.name || 'N/A'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Recent Global Attendance Logs */}
           <div className="card col-span-12">
             <h3>Recent Global Attendance Logs</h3>
             {recentLogs.length === 0 ? (
