@@ -22,6 +22,8 @@ const TeacherDashboard = () => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceRecords, setAttendanceRecords] = useState({});
   const [submittingAttendance, setSubmittingAttendance] = useState(false);
+  const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
+  const [attendanceMarkedAt, setAttendanceMarkedAt] = useState(null);
 
   // Teaching timetable schedule
   const [timetable, setTimetable] = useState([]);
@@ -205,17 +207,22 @@ const TeacherDashboard = () => {
     }
   };
 
-  const fetchClassStudents = async (classId, subjectId) => {
+  const fetchClassStudents = async (classId, subjectId, dateParam) => {
     setLoadingStudents(true);
     try {
-      const res = await axios.get(`/api/teacher/students-by-class/${classId}`);
-      setStudents(res.data);
+      const targetDate = dateParam || date;
+      const res = await axios.get(`/api/teacher/students-by-class/${classId}?date=${targetDate}&subjectId=${subjectId}`);
+      
+      const { students: studentList, attendanceMarked, markedAt, studentStatusMap } = res.data;
+      setStudents(studentList);
 
       const defaultRecords = {};
-      res.data.forEach((student) => {
-        defaultRecords[student.id] = 'PRESENT';
+      studentList.forEach((student) => {
+        defaultRecords[student.id] = studentStatusMap[student.id] || 'PRESENT';
       });
       setAttendanceRecords(defaultRecords);
+      setIsAttendanceMarked(attendanceMarked);
+      setAttendanceMarkedAt(markedAt);
     } catch (err) {
       console.error(err);
       showToast('Error loading student roster.', 'error');
@@ -232,16 +239,18 @@ const TeacherDashboard = () => {
     const subject = subjects.find(s => s.id === subId);
     const classId = subject?.timetable?.[0]?.classId;
     if (classId) {
-      fetchClassStudents(classId, subId);
+      fetchClassStudents(classId, subId, date);
     } else {
       setStudents([]);
+      setIsAttendanceMarked(false);
+      setAttendanceMarkedAt(null);
     }
   };
 
   const selectTimetableSlot = (slot) => {
     setSelectedSlot(slot);
     setSelectedSubjectId(slot.subjectId);
-    fetchClassStudents(slot.classId, slot.subjectId);
+    fetchClassStudents(slot.classId, slot.subjectId, date);
     showToast(`Loaded roster for class: ${slot.class.name}`, 'info');
   };
 
@@ -285,6 +294,12 @@ const TeacherDashboard = () => {
       // Refresh history log
       const histRes = await axios.get('/api/teacher/attendance-history');
       setHistory(histRes.data);
+      
+      // Refresh local page markings & validity states
+      const classId = selectedSlot?.classId || subjects.find(s => s.id === selectedSubjectId)?.timetable?.[0]?.classId;
+      if (classId) {
+        fetchClassStudents(classId, selectedSubjectId, date);
+      }
     } catch (err) {
       const errMsg = err.response?.data?.message || 'Failed to submit attendance.';
       showToast(errMsg, 'error');
@@ -489,83 +504,128 @@ const TeacherDashboard = () => {
 
           {/* Student attendance list roster */}
           <div className="card col-span-8">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <h3>Roll-call Registry</h3>
-                {selectedSlot && (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--color-present)', fontWeight: '600' }}>
-                    Active Slot: {selectedSlot.subject.code} for Class {selectedSlot.class.name}
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" onClick={() => handleMarkAll('PRESENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-present)' }}>All Present</button>
-                <button type="button" onClick={() => handleMarkAll('ABSENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-absent)' }}>All Absent</button>
-              </div>
-            </div>
+            {(() => {
+              const canEditAttendance = () => {
+                if (!isAttendanceMarked) return true;
+                if (!attendanceMarkedAt) return true;
+                const hoursElapsed = (new Date() - new Date(attendanceMarkedAt)) / (1000 * 60 * 60);
+                return hoursElapsed <= 24;
+              };
+              const editable = canEditAttendance();
 
-            {loadingStudents ? (
-              <p>Loading student roster...</p>
-            ) : students.length === 0 ? (
-              <div style={{ padding: '40px', border: '1px dashed var(--glass-border)', borderRadius: '12px', textAlign: 'center' }}>
-                <p style={{ color: 'var(--text-muted)' }}>No students roster loaded. Select a lecture slot on the calendar side to start.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitAttendance}>
-                <div style={{ overflowX: 'auto', maxHeight: '420px', overflowY: 'auto' }}>
-                  <table className="attendance-list">
-                    <thead>
-                      <tr>
-                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Roll No</th>
-                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Student Name</th>
-                        <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {students.map((st) => (
-                        <tr key={st.id} className="attendance-row">
-                          <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
-                          <td className="attendance-cell">
-                            <div style={{ fontWeight: '600' }}>{st.user.name}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{st.user.email}</div>
-                          </td>
-                          <td className="attendance-cell" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <div className="status-selector">
-                              <button
-                                type="button"
-                                onClick={() => handleStatusChange(st.id, 'PRESENT')}
-                                className={`status-btn status-btn-present ${attendanceRecords[st.id] === 'PRESENT' ? 'active' : ''}`}
-                              >
-                                Present
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleStatusChange(st.id, 'LATE')}
-                                className={`status-btn status-btn-late ${attendanceRecords[st.id] === 'LATE' ? 'active' : ''}`}
-                              >
-                                Late
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleStatusChange(st.id, 'ABSENT')}
-                                className={`status-btn status-btn-absent ${attendanceRecords[st.id] === 'ABSENT' ? 'active' : ''}`}
-                              >
-                                Absent
-                              </button>
+              return (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                      <h3>Roll-call Registry</h3>
+                      {selectedSlot && (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-present)', fontWeight: '600' }}>
+                          Active Slot: {selectedSlot.subject.code} for Class {selectedSlot.class.name}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button type="button" onClick={() => handleMarkAll('PRESENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-present)' }} disabled={!editable}>All Present</button>
+                      <button type="button" onClick={() => handleMarkAll('ABSENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-absent)' }} disabled={!editable}>All Absent</button>
+                    </div>
+                  </div>
+
+                  {loadingStudents ? (
+                    <p>Loading student roster...</p>
+                  ) : students.length === 0 ? (
+                    <div style={{ padding: '40px', border: '1px dashed var(--glass-border)', borderRadius: '12px', textAlign: 'center' }}>
+                      <p style={{ color: 'var(--text-muted)' }}>No students roster loaded. Select a lecture slot on the calendar side to start.</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmitAttendance}>
+                      {/* Submissions Limit Warning Alerts */}
+                      {isAttendanceMarked && (
+                        <div style={{
+                          marginBottom: '16px',
+                          padding: '12px 16px',
+                          borderRadius: '8px',
+                          background: editable ? 'rgba(99, 102, 241, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                          border: editable ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)',
+                          color: editable ? 'var(--accent-secondary)' : 'var(--color-absent)',
+                          fontSize: '0.85rem'
+                        }}>
+                          {editable ? (
+                            <div>
+                              <strong>✓ Attendance Sheets Submitted:</strong> You can edit or modify these records for this session until <strong>{new Date(new Date(attendanceMarkedAt).getTime() + 24 * 60 * 60 * 1000).toLocaleString()}</strong> (24-hour edit window).
                             </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          ) : (
+                            <div>
+                              <strong>🔒 Registry Locked:</strong> Attendance for this lecture was marked on {new Date(attendanceMarkedAt).toLocaleString()} (more than 24 hours ago) and is now closed for edits.
+                            </div>
+                          )}
+                        </div>
+                      )}
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '20px' }} disabled={submittingAttendance}>
-                  <UserCheck size={18} />
-                  {submittingAttendance ? 'Saving Attendance Records...' : 'Save & Publish Attendance'}
-                </button>
-              </form>
-            )}
+                      <div style={{ overflowX: 'auto', maxHeight: '420px', overflowY: 'auto' }}>
+                        <table className="attendance-list">
+                          <thead>
+                            <tr>
+                              <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Roll No</th>
+                              <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Student Name</th>
+                              <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {students.map((st) => (
+                              <tr key={st.id} className="attendance-row">
+                                <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
+                                <td className="attendance-cell">
+                                  <div style={{ fontWeight: '600' }}>{st.user.name}</div>
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{st.user.email}</div>
+                                </td>
+                                <td className="attendance-cell" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                  <div className="status-selector" style={{ opacity: editable ? 1 : 0.6 }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => editable && handleStatusChange(st.id, 'PRESENT')}
+                                      className={`status-btn status-btn-present ${attendanceRecords[st.id] === 'PRESENT' ? 'active' : ''}`}
+                                      disabled={!editable}
+                                    >
+                                      Present
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => editable && handleStatusChange(st.id, 'LATE')}
+                                      className={`status-btn status-btn-late ${attendanceRecords[st.id] === 'LATE' ? 'active' : ''}`}
+                                      disabled={!editable}
+                                    >
+                                      Late
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => editable && handleStatusChange(st.id, 'ABSENT')}
+                                      className={`status-btn status-btn-absent ${attendanceRecords[st.id] === 'ABSENT' ? 'active' : ''}`}
+                                      disabled={!editable}
+                                    >
+                                      Absent
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary" 
+                        style={{ width: '100%', marginTop: '20px' }} 
+                        disabled={submittingAttendance || !editable}
+                      >
+                        <UserCheck size={18} />
+                        {submittingAttendance ? 'Saving Attendance Records...' : isAttendanceMarked ? (editable ? 'Update Attendance Records' : 'Attendance Registry Locked') : 'Save & Publish Attendance'}
+                      </button>
+                    </form>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

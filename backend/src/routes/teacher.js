@@ -71,6 +71,7 @@ router.get('/subjects', async (req, res) => {
 // Get list of students belonging to a class
 router.get('/students-by-class/:classId', async (req, res) => {
   const { classId } = req.params;
+  const { date, subjectId } = req.query;
 
   try {
     const students = await prisma.student.findMany({
@@ -86,7 +87,37 @@ router.get('/students-by-class/:classId', async (req, res) => {
       orderBy: { rollNumber: 'asc' },
     });
 
-    res.json(students);
+    let attendanceMarked = false;
+    let markedAt = null;
+    let studentStatusMap = {};
+
+    if (date && subjectId) {
+      const dateObj = new Date(date);
+      dateObj.setUTCHours(0, 0, 0, 0);
+
+      const existingRecords = await prisma.attendance.findMany({
+        where: {
+          date: dateObj,
+          subjectId,
+          student: { classId }
+        }
+      });
+
+      if (existingRecords.length > 0) {
+        attendanceMarked = true;
+        markedAt = existingRecords[0].createdAt;
+        existingRecords.forEach(rec => {
+          studentStatusMap[rec.studentId] = rec.status;
+        });
+      }
+    }
+
+    res.json({
+      students,
+      attendanceMarked,
+      markedAt,
+      studentStatusMap
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching class students.', error: error.message });
   }
