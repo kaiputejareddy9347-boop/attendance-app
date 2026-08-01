@@ -143,6 +143,10 @@ const Navbar = () => {
                   <Calendar size={18} style={{ color: 'var(--accent-secondary)' }} />
                   <span>Calendar Planner</span>
                 </Link>
+                <Link to="/dashboard?tab=holidays" className={`sidebar-link ${isActive('/dashboard', 'holidays') ? 'active' : ''}`}>
+                  <Calendar size={18} style={{ color: 'var(--accent-primary)' }} />
+                  <span>Holiday Recess</span>
+                </Link>
                 <Link to="/dashboard?tab=profile" className={`sidebar-link ${isActive('/dashboard', 'profile') ? 'active' : ''}`}>
                   <User size={18} />
                   <span>My Profile</span>

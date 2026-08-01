@@ -54,32 +54,71 @@ router.get('/attendance', async (req, res) => {
       },
     });
 
-    // Find all subjects associated with the class to compute metrics (even for subjects with no attendance marked yet)
-    // To do this, we lookup all subjects taught by looking at timetables or all subjects in system.
-    // Let's get all subjects first.
+    // Find timetable slots to determine session weights (double hour, etc.)
+    const timetableSlots = await prisma.timetableSlot.findMany({
+      where: { classId: student.classId },
+    });
+
+    // Find all subjects associated with the system to compute metrics
     const subjects = await prisma.subject.findMany({
       include: {
         teacher: { include: { user: { select: { name: true } } } },
       },
     });
 
-    // Calculate overall stats
-    const totalCount = attendanceRecords.length;
-    const presentCount = attendanceRecords.filter((r) => r.status === 'PRESENT').length;
-    const lateCount = attendanceRecords.filter((r) => r.status === 'LATE').length;
-    const absentCount = attendanceRecords.filter((r) => r.status === 'ABSENT').length;
+    const getWeight = (subj, sl) => {
+      if (subj.type === 'LAB') return 3;
+      if (sl) {
+        const parseTime = (t) => {
+          const [h, m] = t.split(':').map(Number);
+          return h * 60 + m;
+        };
+        const diff = parseTime(sl.endTime) - parseTime(sl.startTime);
+        if (diff >= 120) return 3;
+        if (diff >= 80) return 2;
+      }
+      return 1;
+    };
 
-    // A student is considered present on LATE as well, or counts as 0.5/1. Let's count PRESENT and LATE as active presence
+    // Calculate weighted overall stats
+    let totalCount = 0;
+    let presentCount = 0;
+    let lateCount = 0;
+    let absentCount = 0;
+
+    attendanceRecords.forEach((r) => {
+      const dayVal = new Date(r.date).getDay();
+      const slot = timetableSlots.find((s) => s.subjectId === r.subjectId && s.dayOfWeek === dayVal);
+      const weight = getWeight(r.subject, slot);
+
+      totalCount += weight;
+      if (r.status === 'PRESENT') presentCount += weight;
+      if (r.status === 'LATE') lateCount += weight;
+      if (r.status === 'ABSENT') absentCount += weight;
+    });
+
     const activePresence = presentCount + lateCount;
     const overallPercentage = totalCount > 0 ? Math.round((activePresence / totalCount) * 100) : 100;
 
     // Calculate subject-wise breakdown
     const subjectBreakdown = subjects.map((subj) => {
       const subjRecords = attendanceRecords.filter((r) => r.subjectId === subj.id);
-      const sTotal = subjRecords.length;
-      const sPresent = subjRecords.filter((r) => r.status === 'PRESENT').length;
-      const sLate = subjRecords.filter((r) => r.status === 'LATE').length;
-      const sAbsent = subjRecords.filter((r) => r.status === 'ABSENT').length;
+      
+      let sTotal = 0;
+      let sPresent = 0;
+      let sLate = 0;
+      let sAbsent = 0;
+
+      subjRecords.forEach((r) => {
+        const dayVal = new Date(r.date).getDay();
+        const slot = timetableSlots.find((s) => s.subjectId === r.subjectId && s.dayOfWeek === dayVal);
+        const weight = getWeight(subj, slot);
+
+        sTotal += weight;
+        if (r.status === 'PRESENT') sPresent += weight;
+        if (r.status === 'LATE') sLate += weight;
+        if (r.status === 'ABSENT') sAbsent += weight;
+      });
 
       const sPercentage = sTotal > 0 ? Math.round(((sPresent + sLate) / sTotal) * 100) : 100;
 
@@ -108,7 +147,7 @@ router.get('/attendance', async (req, res) => {
       studentClass: student.class,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching attendance stats.', error: error.message });
+    res.status(500).json({ message: 'Error calculating attendance statistics.', error: error.message });
   }
 });
 

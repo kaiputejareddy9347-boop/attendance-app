@@ -272,15 +272,21 @@ const StudentDashboard = () => {
               <div style={{ background: 'rgba(255,255,255,0.01)', padding: '10px 4px', borderRadius: '8px' }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-present)', fontWeight: '600' }}>Present</div>
                 <div style={{ fontSize: '1.25rem', fontWeight: '800', marginTop: '4px' }}>{summary.present}</div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sessions</span>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.01)', padding: '10px 4px', borderRadius: '8px' }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-late)', fontWeight: '600' }}>Late</div>
                 <div style={{ fontSize: '1.25rem', fontWeight: '800', marginTop: '4px' }}>{summary.late}</div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sessions</span>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.01)', padding: '10px 4px', borderRadius: '8px' }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-absent)', fontWeight: '600' }}>Absent</div>
                 <div style={{ fontSize: '1.25rem', fontWeight: '800', marginTop: '4px' }}>{summary.absent}</div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sessions</span>
               </div>
+            </div>
+            <div style={{ marginTop: '16px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              Total Term Attendance: <strong>{summary.total}</strong> registered sessions
             </div>
           </div>
 
@@ -905,6 +911,37 @@ const StudentDashboard = () => {
           </div>
         );
       })()}
+
+      {/* TAB: HOLIDAYS */}
+      {activeTab === 'HOLIDAYS' && (
+        <div className="card col-span-12">
+          <h3>Upcoming College Recess Breaks</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+            Official scheduled holidays and term breaks declared by the administration.
+          </p>
+          {holidays.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)' }}>No recess breaks or holidays scheduled currently.</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {holidays.map((hol) => (
+                <div key={hol.id} style={{
+                  padding: '20px',
+                  borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.01)',
+                  border: '1px solid var(--glass-border)',
+                }}>
+                  <h4 style={{ fontWeight: '700', fontSize: '1.1rem', color: '#fff', marginBottom: '8px' }}>{hol.name}</h4>
+                  {hol.description && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px', fontStyle: 'italic' }}>"{hol.description}"</p>}
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <div>Start Date: <strong>{new Date(hol.startDate).toLocaleDateString()}</strong></div>
+                    <div style={{ marginTop: '4px' }}>End Date: <strong>{new Date(hol.endDate).toLocaleDateString()}</strong></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
