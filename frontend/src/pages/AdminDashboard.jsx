@@ -94,15 +94,27 @@ const AdminDashboard = () => {
     try {
       const statsRes = await axios.get('/api/admin/stats');
       setStats(statsRes.data);
+    } catch (err) {
+      console.error('Error fetching admin stats', err);
+    }
 
+    try {
       const classesRes = await axios.get('/api/admin/classes');
       setClasses(classesRes.data);
       if (classesRes.data.length > 0) setTtClassId(classesRes.data[0].id);
+    } catch (err) {
+      console.error('Error fetching admin classes', err);
+    }
 
+    try {
       const teachersRes = await axios.get('/api/admin/teachers');
       setTeachers(teachersRes.data);
       if (teachersRes.data.length > 0) setSubjTeacherId(teachersRes.data[0].id);
+    } catch (err) {
+      console.error('Error fetching admin teachers', err);
+    }
 
+    try {
       const subjectsRes = await axios.get('/api/admin/subjects');
       setSubjects(subjectsRes.data);
       if (subjectsRes.data.length > 0) {
@@ -111,28 +123,47 @@ const AdminDashboard = () => {
         const defaultDuration = subjectsRes.data[0].type === 'LAB' ? '3' : '2';
         setTtDuration(defaultDuration);
       }
+    } catch (err) {
+      console.error('Error fetching admin subjects', err);
+    }
 
+    try {
       const studentsRes = await axios.get('/api/admin/students');
       setStudents(studentsRes.data);
       if (studentsRes.data.length > 0) setFeeStudentId(studentsRes.data[0].id);
+    } catch (err) {
+      console.error('Error fetching admin students', err);
+    }
 
+    try {
       const examsRes = await axios.get('/api/admin/exams');
       setExams(examsRes.data);
+    } catch (err) {
+      console.error('Error fetching admin exams', err);
+    }
 
+    try {
       const holidaysRes = await axios.get('/api/admin/holidays');
       setHolidays(holidaysRes.data);
+    } catch (err) {
+      console.error('Error fetching admin holidays', err);
+    }
 
+    try {
       const feesRes = await axios.get('/api/admin/fees');
       setFees(feesRes.data);
+    } catch (err) {
+      console.error('Error fetching admin fees', err);
+    }
 
+    try {
       const timetableRes = await axios.get('/api/admin/timetable');
       setTimetable(timetableRes.data);
     } catch (err) {
-      console.error(err);
-      showToast('Could not load administrative details.', 'error');
-    } finally {
-      setLoading(false);
+      console.error('Error fetching admin timetable', err);
     }
+
+    setLoading(false);
   };
 
   const fetchCollegeConfig = async () => {

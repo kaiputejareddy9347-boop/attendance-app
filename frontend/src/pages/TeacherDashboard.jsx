@@ -53,8 +53,8 @@ const TeacherDashboard = () => {
   }, []);
 
   const fetchInitialData = async () => {
+    // 1. Subjects
     try {
-      // Fetch subjects & timetable slots
       const subRes = await axios.get('/api/teacher/subjects');
       setSubjects(subRes.data);
       if (subRes.data.length > 0) {
@@ -63,35 +63,79 @@ const TeacherDashboard = () => {
           fetchClassStudents(subRes.data[0].timetable[0].classId, subRes.data[0].id);
         }
       }
+    } catch (err) {
+      console.error('Error fetching teacher subjects', err);
+    }
 
+    // 2. Timetable
+    try {
       const ttRes = await axios.get('/api/teacher/timetable');
       setTimetable(ttRes.data);
+    } catch (err) {
+      console.error('Error fetching teacher timetable', err);
+    }
 
+    // 3. Classes
+    try {
       const clsRes = await axios.get('/api/teacher/classes');
       setClasses(clsRes.data);
+    } catch (err) {
+      console.error('Error fetching teacher classes', err);
+    }
 
+    // 4. Fees
+    try {
       const feeRes = await axios.get('/api/teacher/fees');
       setFees(feeRes.data);
+    } catch (err) {
+      console.error('Error fetching teacher fees', err);
+    }
 
+    // 5. Exams
+    try {
       const examRes = await axios.get('/api/teacher/exams');
       setExams(examRes.data);
+    } catch (err) {
+      console.error('Error fetching teacher exams', err);
+    }
 
+    // 6. Holidays
+    try {
       const holRes = await axios.get('/api/teacher/holidays');
       setHolidays(holRes.data);
+    } catch (err) {
+      console.error('Error fetching teacher holidays', err);
+    }
 
+    // 7. History
+    try {
       const histRes = await axios.get('/api/teacher/attendance-history');
       setHistory(histRes.data);
+    } catch (err) {
+      console.error('Error fetching teacher history', err);
+    }
 
+    // 8. Leaves
+    try {
       const leavesRes = await axios.get('/api/teacher/leaves');
       setLeaves(leavesRes.data);
+    } catch (err) {
+      console.error('Error fetching teacher leaves', err);
+    }
 
+    // 9. Config
+    try {
       const configRes = await axios.get('/api/college/config');
       setCollegeConfig(configRes.data);
-
-      fetchNotices();
     } catch (err) {
-      console.error(err);
-      showToast('Error loading teacher dashboard information.', 'error');
+      console.error('Error fetching college config', err);
+    }
+
+    // 10. Notices
+    try {
+      await fetchNotices();
+    } catch (err) {
+      console.error('Error fetching notices', err);
     }
   };
 

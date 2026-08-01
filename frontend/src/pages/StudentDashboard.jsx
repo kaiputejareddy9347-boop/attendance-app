@@ -53,15 +53,18 @@ const StudentDashboard = () => {
     try {
       const statsRes = await axios.get('/api/student/attendance');
       setData(statsRes.data);
-      
+    } catch (err) {
+      console.error('Error fetching student stats', err);
+    }
+
+    try {
       const leavesRes = await axios.get('/api/student/leaves');
       setLeaveRequests(leavesRes.data);
     } catch (err) {
-      console.error('Error fetching student stats', err);
-      showToast('Could not load attendance details.', 'error');
-    } finally {
-      setLoading(false);
+      console.error('Error fetching student leaves', err);
     }
+
+    setLoading(false);
   };
 
   const fetchNotifications = async () => {
@@ -77,17 +80,29 @@ const StudentDashboard = () => {
     try {
       const timetableRes = await axios.get('/api/student/timetable');
       setTimetable(timetableRes.data);
+    } catch (err) {
+      console.error('Error fetching student timetable', err);
+    }
 
+    try {
       const examsRes = await axios.get('/api/student/exams');
       setExams(examsRes.data);
+    } catch (err) {
+      console.error('Error fetching student exams', err);
+    }
 
+    try {
       const holidaysRes = await axios.get('/api/student/holidays');
       setHolidays(holidaysRes.data);
+    } catch (err) {
+      console.error('Error fetching student holidays', err);
+    }
 
+    try {
       const feesRes = await axios.get('/api/student/fees');
       setFees(feesRes.data);
     } catch (err) {
-      console.error('Error loading academic details', err);
+      console.error('Error fetching student fees', err);
     }
   };
 
