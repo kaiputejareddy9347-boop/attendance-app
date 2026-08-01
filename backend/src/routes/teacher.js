@@ -81,6 +81,23 @@ router.post('/attendance', async (req, res) => {
       return res.status(404).json({ message: 'Teacher profile not found.' });
     }
 
+    // Check if attendance was already marked previously for this subject on this date
+    const firstExistingRecord = await prisma.attendance.findFirst({
+      where: {
+        date: parsedDate,
+        subjectId,
+      },
+    });
+
+    if (firstExistingRecord) {
+      const hoursElapsed = (new Date() - new Date(firstExistingRecord.createdAt)) / (1000 * 60 * 60);
+      if (hoursElapsed > 24) {
+        return res.status(403).json({ 
+          message: 'Attendance modification closed. You can only edit attendance within 24 hours of marking it.' 
+        });
+      }
+    }
+
     // Save attendance records in a transaction using upsert
     const savedRecords = await prisma.$transaction(
       records.map((rec) =>
