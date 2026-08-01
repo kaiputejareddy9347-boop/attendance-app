@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
-import { Award, Calendar, FileText, Send, CheckCircle, Clock, AlertTriangle, Bell, Check, BookOpen, MapPin, ShieldAlert, CreditCard, DollarSign } from 'lucide-react';
+import { Award, Calendar, FileText, Send, CheckCircle, Clock, AlertTriangle, Bell, Check, BookOpen, MapPin, ShieldAlert, CreditCard, DollarSign, Layers, Settings, Landmark } from 'lucide-react';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
   
-  const [activeTab, setActiveTab] = useState('OVERVIEW');
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab')?.toUpperCase() || 'STATS';
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
@@ -26,10 +29,24 @@ const StudentDashboard = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [submittingLeave, setSubmittingLeave] = useState(false);
 
+  // Classmates directory
+  const [classmates, setClassmates] = useState([]);
+  const [studentClassInfo, setStudentClassInfo] = useState(null);
+
+  // Notices
+  const [notices, setNotices] = useState([]);
+  const [loadingNotices, setLoadingNotices] = useState(false);
+
+  // Branding config
+  const [collegeConfig, setCollegeConfig] = useState(null);
+
   useEffect(() => {
     fetchDashboardData();
     fetchNotifications();
     fetchAdditionalData();
+    fetchClassmates();
+    fetchNotices();
+    fetchCollegeConfig();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -71,6 +88,37 @@ const StudentDashboard = () => {
       setFees(feesRes.data);
     } catch (err) {
       console.error('Error loading academic details', err);
+    }
+  };
+
+  const fetchClassmates = async () => {
+    try {
+      const res = await axios.get('/api/student/classmates');
+      setClassmates(res.data.classmates);
+      setStudentClassInfo(res.data.class);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchNotices = async () => {
+    setLoadingNotices(true);
+    try {
+      const res = await axios.get('/api/notices');
+      setNotices(res.data);
+    } catch (err) {
+      console.error('Error fetching notices', err);
+    } finally {
+      setLoadingNotices(false);
+    }
+  };
+
+  const fetchCollegeConfig = async () => {
+    try {
+      const res = await axios.get('/api/college/config');
+      setCollegeConfig(res.data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -127,58 +175,24 @@ const StudentDashboard = () => {
   const strokeDashoffset = circumference - (summary.percentage / 100) * circumference;
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ padding: '0px' }}>
       {/* Profile summary card */}
-      <div className="card profile-card pulse" style={{ marginBottom: '24px' }}>
-        <div className="profile-avatar">
+      <div className="card profile-card" style={{ marginBottom: '24px' }}>
+        <div className="profile-avatar" style={{ background: 'linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%)' }}>
           {user.name.charAt(0)}
         </div>
         <div>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{user.name}</h2>
           <p style={{ fontSize: '0.9rem' }}>
-            Roll: <strong style={{ color: '#fff' }}>{user.student?.rollNumber || 'N/A'}</strong> | Class:{' '}
+            Roll No: <strong style={{ color: '#fff' }}>{user.student?.rollNumber || 'N/A'}</strong> | Class:{' '}
             <strong style={{ color: '#fff' }}>{studentClass.name}</strong> ({studentClass.department}) | Semester:{' '}
-            <strong style={{ color: 'var(--accent-secondary)' }}>{studentClass.semester}</strong>
+            <strong style={{ color: 'var(--accent-secondary)' }}>Sem {studentClass.semester}</strong>
           </p>
         </div>
       </div>
 
-      {/* Tabs Selector Header */}
-      <div className="tabs-header">
-        <button
-          onClick={() => setActiveTab('OVERVIEW')}
-          className={`tab-btn ${activeTab === 'OVERVIEW' ? 'active' : ''}`}
-        >
-          <Award size={16} /> Overview
-        </button>
-        <button
-          onClick={() => setActiveTab('EXAMS_TIMETABLE')}
-          className={`tab-btn ${activeTab === 'EXAMS_TIMETABLE' ? 'active' : ''}`}
-        >
-          <BookOpen size={16} /> Exams & Timetable
-        </button>
-        <button
-          onClick={() => setActiveTab('HOLIDAYS')}
-          className={`tab-btn ${activeTab === 'HOLIDAYS' ? 'active' : ''}`}
-        >
-          <Calendar size={16} /> Holidays
-        </button>
-        <button
-          onClick={() => setActiveTab('FEES')}
-          className={`tab-btn ${activeTab === 'FEES' ? 'active' : ''}`}
-        >
-          <CreditCard size={16} /> Fee Dues
-        </button>
-        <button
-          onClick={() => setActiveTab('LEAVES')}
-          className={`tab-btn ${activeTab === 'LEAVES' ? 'active' : ''}`}
-        >
-          <FileText size={16} /> Leave Manager
-        </button>
-      </div>
-
-      {/* TAB 1: OVERVIEW */}
-      {activeTab === 'OVERVIEW' && (
+      {/* TAB 1: OVERVIEW STATS (DASHBOARD) */}
+      {activeTab === 'STATS' && (
         <div className="dashboard-grid">
           {/* Circular Stats Chart */}
           <div className="card col-span-4" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -210,7 +224,9 @@ const StudentDashboard = () => {
               </svg>
               <div className="progress-ring-value">
                 {summary.percentage}%
-                <span>{summary.percentage >= 75 ? 'Good' : 'Low'}</span>
+                <span style={{ fontSize: '0.8rem', color: summary.percentage >= 75 ? 'var(--color-present)' : 'var(--color-absent)' }}>
+                  {summary.percentage >= 75 ? 'Good Standing' : 'Low Attendance'}
+                </span>
               </div>
             </div>
 
@@ -272,12 +288,9 @@ const StudentDashboard = () => {
 
           {/* Subject Breakdown Card */}
           <div className="card col-span-12">
-            <h3>Subject-wise Attendance Breakdown (Semester {studentClass.semester})</h3>
-            <p style={{ fontSize: '0.9rem', marginBottom: '16px', color: 'var(--text-muted)' }}>
-              Courses registered for this semester. Maintain above 75% attendance to take exams.
-            </p>
-            <div className="subject-grid">
-              {breakdown.filter(subj => subj.percentage !== undefined).map((subj) => (
+            <h3>Attendance Progress Breakdown</h3>
+            <div className="subject-grid" style={{ marginTop: '16px' }}>
+              {breakdown.map((subj) => (
                 <div key={subj.subjectId} className="card subject-card" style={{ background: 'rgba(255,255,255,0.02)' }}>
                   <div className="subject-header">
                     <div>
@@ -326,45 +339,113 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {/* TAB 2: EXAMS & TIMETABLE */}
-      {activeTab === 'EXAMS_TIMETABLE' && (
+      {/* TAB 2: COURSES LIST */}
+      {activeTab === 'COURSES' && (
+        <div className="card col-span-12">
+          <h3>Registered Course Subjects</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+            List of academic courses registered for your semester.
+          </p>
+          {breakdown.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)' }}>No subjects found.</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="attendance-list">
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Name</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Code</th>
+                    <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester</th>
+                    <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Course Instructor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {breakdown.map((subj) => (
+                    <tr key={subj.subjectId} className="attendance-row">
+                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{subj.subjectName}</td>
+                      <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{subj.subjectCode}</td>
+                      <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '600' }}>Sem {studentClass.semester}</td>
+                      <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '500' }}>{subj.teacherName}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: CLASSES (CLASSMATES DIRECTORY) */}
+      {activeTab === 'CLASSES' && (
         <div className="dashboard-grid">
-          {/* Exams Schedule Card */}
-          <div className="card col-span-12">
-            <h3>Upcoming Semester Exams Schedule</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              Official testing dates scheduled for your current semester subjects.
-            </p>
-            {exams.length === 0 ? (
-              <div style={{ padding: '24px', background: 'rgba(255,255,255,0.01)', borderRadius: '12px', border: '1px dashed var(--glass-border)', textAlign: 'center' }}>
-                <p style={{ color: 'var(--text-muted)' }}>No exams scheduled for this semester yet.</p>
+          <div className="card col-span-4" style={{ height: 'fit-content' }}>
+            <h3>Class Details</h3>
+            {studentClassInfo ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Class Name</span>
+                  <div style={{ fontWeight: '700', fontSize: '1.1rem' }}>{studentClassInfo.name}</div>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Department</span>
+                  <div style={{ fontWeight: '600' }}>{studentClassInfo.department}</div>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Current Semester</span>
+                  <div style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>Semester {studentClassInfo.semester}</div>
+                </div>
               </div>
             ) : (
-              <div className="exam-grid">
+              <p style={{ color: 'var(--text-muted)' }}>Loading class details...</p>
+            )}
+          </div>
+
+          <div className="card col-span-8">
+            <h3>Classmates Directory ({classmates.length} Enrolled)</h3>
+            {classmates.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)' }}>No classmates found.</p>
+            ) : (
+              <div style={{ overflowX: 'auto', marginTop: '16px' }}>
+                <table className="attendance-list">
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Roll Number</th>
+                      <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Student Name</th>
+                      <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Email Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {classmates.map((st) => (
+                      <tr key={st.id} className="attendance-row">
+                        <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
+                        <td className="attendance-cell" style={{ fontWeight: '600' }}>{st.user.name} {st.id === user.student?.id && '(You)'}</td>
+                        <td className="attendance-cell" style={{ textAlign: 'right', color: 'var(--text-secondary)' }}>{st.user.email}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: TIMETABLE WEEKLY GRID */}
+      {activeTab === 'TIMETABLE' && (
+        <div className="dashboard-grid">
+          {/* Exams Schedule Card */}
+          <div className="card col-span-4" style={{ height: 'fit-content' }}>
+            <h3>Exams Schedule Calendar</h3>
+            {exams.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', marginTop: '12px' }}>No upcoming exams scheduled.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
                 {exams.map((ex) => (
-                  <div key={ex.id} className="exam-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                      <div>
-                        <span style={{ fontSize: '0.7rem', background: 'var(--accent-secondary-glow)', color: 'var(--accent-secondary)', padding: '2px 8px', borderRadius: '4px', fontWeight: '700' }}>
-                          {ex.subject.code}
-                        </span>
-                        <h4 style={{ fontSize: '1.05rem', marginTop: '6px' }}>{ex.name}</h4>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{ex.subject.name}</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Date:</span>
-                        <strong style={{ color: '#fff' }}>{new Date(ex.date).toLocaleDateString()}</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Time:</span>
-                        <strong style={{ color: '#fff' }}>{ex.startTime} - {ex.endTime}</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Venue / Room:</span>
-                        <strong style={{ color: 'var(--accent-secondary)' }}>{ex.room}</strong>
-                      </div>
+                  <div key={ex.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--accent-secondary)' }}>{ex.subject.code}</div>
+                    <div style={{ fontWeight: '600', fontSize: '0.9rem', marginTop: '4px' }}>{ex.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      {new Date(ex.date).toLocaleDateString()} | {ex.startTime} - {ex.endTime} | Venue: {ex.room}
                     </div>
                   </div>
                 ))}
@@ -372,30 +453,26 @@ const StudentDashboard = () => {
             )}
           </div>
 
-          {/* Timetable Slot view */}
-          <div className="card col-span-12">
-            <h3>Weekly Lecture Timetable</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              Your weekly class schedule for Semester {studentClass.semester}.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="card col-span-8">
+            <h3>Weekly Lecture Timetable Schedule</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
               {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((dayName, index) => {
                 const dayIndex = index + 1;
                 const daySlots = timetable.filter(s => s.dayOfWeek === dayIndex);
                 return (
-                  <div key={dayName} className="timetable-grid" style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
-                    <div className="timetable-day-header">{dayName}</div>
-                    <div className="timetable-slots">
+                  <div key={dayName} style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
+                    <h4 style={{ color: 'var(--accent-secondary)', fontWeight: '700', marginBottom: '8px' }}>{dayName}</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
                       {daySlots.length === 0 ? (
                         <div style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>No lectures.</div>
                       ) : (
                         daySlots.map(s => (
-                          <div key={s.id} className="timetable-slot">
-                            <span className="timetable-slot-time">{s.startTime} - {s.endTime}</span>
-                            <div className="timetable-slot-subject">{s.subject.name}</div>
-                            <div className="timetable-slot-details">
-                              <span>{s.subject.teacher.user.name}</span>
-                              <span style={{ color: 'var(--accent-secondary)' }}>{s.room}</span>
+                          <div key={s.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>{s.startTime} - {s.endTime}</span>
+                            <div style={{ fontWeight: '600', fontSize: '0.9rem', marginTop: '4px' }}>{s.subject.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                              <span>{s.subject.teacher?.user?.name || 'TBA'}</span>
+                              <span style={{ fontWeight: '700' }}>{s.room}</span>
                             </div>
                           </div>
                         ))
@@ -409,50 +486,12 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {/* TAB 3: HOLIDAYS */}
-      {activeTab === 'HOLIDAYS' && (
-        <div className="card col-span-12">
-          <h3>Upcoming Academic Holidays</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            List of declared college breaks and national holidays.
-          </p>
-          {holidays.length === 0 ? (
-            <div style={{ padding: '24px', background: 'rgba(255,255,255,0.01)', borderRadius: '12px', border: '1px dashed var(--glass-border)', textAlign: 'center' }}>
-              <p style={{ color: 'var(--text-muted)' }}>No upcoming holidays declared.</p>
-            </div>
-          ) : (
-            <div className="holiday-grid">
-              {holidays.map((hol) => {
-                const start = new Date(hol.startDate);
-                const end = new Date(hol.endDate);
-                const diffTime = Math.abs(start - new Date());
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                return (
-                  <div key={hol.id} className="holiday-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                      <h4 style={{ fontSize: '1.1rem' }}>{hol.name}</h4>
-                    </div>
-                    {hol.description && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>"{hol.description}"</p>}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      <div>Duration: <strong style={{ color: '#fff' }}>{start.toLocaleDateString()} - {end.toLocaleDateString()}</strong></div>
-                      <div style={{ color: 'var(--color-late)', fontWeight: '600', marginTop: '4px' }}>
-                        Starts in {diffDays} days
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 4: FEES PORTAL */}
+      {/* TAB 5: FEES DUES */}
       {activeTab === 'FEES' && (
         <div className="card col-span-12">
           <h3>Academic Fees Statement</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Monitor outstanding invoices, tuition fees, library balances, and payment histories.
+            Monitor outstanding invoices, tuition fees, and payment histories.
           </p>
           {fees.length === 0 ? (
             <div style={{ padding: '24px', background: 'rgba(255,255,255,0.01)', borderRadius: '12px', border: '1px dashed var(--glass-border)', textAlign: 'center' }}>
@@ -495,7 +534,7 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {/* TAB 5: LEAVE MANAGER */}
+      {/* TAB 6: LEAVES MANAGER */}
       {activeTab === 'LEAVES' && (
         <div className="dashboard-grid">
           {/* Apply Form */}
@@ -582,6 +621,83 @@ const StudentDashboard = () => {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TAB 7: NOTICE BOARD (STUDENTS VIEW NOTICE BOARD) */}
+      {activeTab === 'NOTICE' && (
+        <div className="card col-span-12">
+          <h3>College Notice Board</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+            Public announcements posted by instructors and administrative departments.
+          </p>
+
+          {loadingNotices ? (
+            <p>Loading notices...</p>
+          ) : notices.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', border: '1px dashed var(--glass-border)', borderRadius: '12px' }}>
+              <p style={{ color: 'var(--text-muted)' }}>Notice board is currently clear.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {notices.map((n) => (
+                <div key={n.id} style={{
+                  padding: '20px',
+                  borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.01)',
+                  border: '1px solid var(--glass-border)',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <h4 style={{ fontWeight: '700', fontSize: '1.1rem', color: '#fff' }}>{n.title}</h4>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {new Date(n.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                    {n.content}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '12px', fontSize: '0.8rem', color: 'var(--accent-secondary)' }}>
+                    <span>Posted by:</span>
+                    <strong>{n.postedBy}</strong>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 8: BRANDING (SPECIFICATIONS) */}
+      {activeTab === 'BRANDING' && (
+        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Landmark size={22} style={{ color: 'var(--accent-primary)' }} />
+            College Institution Details
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '24px' }}>
+            Institution registration profiles and active academic year configuration.
+          </p>
+          
+          {collegeConfig ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Institution Name</span>
+                <div style={{ fontWeight: '700', fontSize: '1.15rem', marginTop: '4px' }}>{collegeConfig.name}</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>College Code</span>
+                  <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px', color: 'var(--accent-secondary)' }}>{collegeConfig.code}</div>
+                </div>
+                <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Academic Term / Year</span>
+                  <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>{collegeConfig.academicYear}</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p style={{ color: 'var(--text-muted)' }}>Loading college branding specifications...</p>
+          )}
         </div>
       )}
     </div>

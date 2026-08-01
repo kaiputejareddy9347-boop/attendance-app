@@ -242,4 +242,24 @@ router.get('/fees', async (req, res) => {
   }
 });
 
+// GET classmates list
+router.get('/classmates', async (req, res) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { userId: req.user.userId },
+      include: { class: true }
+    });
+    if (!student) {
+      return res.status(404).json({ message: 'Student profile not found.' });
+    }
+    const classmates = await prisma.student.findMany({
+      where: { classId: student.classId },
+      include: { user: { select: { name: true, email: true } } }
+    });
+    res.json({ class: student.class, classmates });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching classmates.', error: error.message });
+  }
+});
+
 export default router;

@@ -95,13 +95,13 @@ const AppContent = () => {
         <Routes>
           {/* Protected Student Routes */}
           <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />
-          <Route path="/timetable" element={<ProtectedRoute allowedRoles={['STUDENT']}><Timetable /></ProtectedRoute>} />
-          <Route path="/leaves" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentLeaves /></ProtectedRoute>} />
+          <Route path="/timetable" element={<Navigate to="/dashboard?tab=timetable" replace />} />
+          <Route path="/leaves" element={<Navigate to="/dashboard?tab=leaves" replace />} />
 
           {/* Protected Teacher Routes */}
           <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['TEACHER']}><TeacherDashboard /></ProtectedRoute>} />
-          <Route path="/teacher/history" element={<ProtectedRoute allowedRoles={['TEACHER']}><TeacherHistory /></ProtectedRoute>} />
-          <Route path="/teacher/leaves" element={<ProtectedRoute allowedRoles={['TEACHER']}><TeacherLeaves /></ProtectedRoute>} />
+          <Route path="/teacher/history" element={<Navigate to="/teacher/dashboard?tab=history" replace />} />
+          <Route path="/teacher/leaves" element={<Navigate to="/teacher/dashboard?tab=leaves" replace />} />
 
           {/* Protected Admin Routes */}
           <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />

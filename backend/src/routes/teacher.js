@@ -268,4 +268,122 @@ router.get('/holidays', async (req, res) => {
   }
 });
 
+// GET teacher's own teaching schedule
+router.get('/timetable', async (req, res) => {
+  try {
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId: req.user.userId },
+    });
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher profile not found.' });
+    }
+    const slots = await prisma.timetableSlot.findMany({
+      where: {
+        subject: {
+          teacherId: teacher.id
+        }
+      },
+      include: {
+        class: { select: { name: true } },
+        subject: { select: { name: true, code: true, type: true } }
+      },
+      orderBy: [
+        { dayOfWeek: 'asc' },
+        { startTime: 'asc' }
+      ]
+    });
+    res.json(slots);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching teacher timetable.', error: error.message });
+  }
+});
+
+// GET classes taught by this teacher
+router.get('/classes', async (req, res) => {
+  try {
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId: req.user.userId },
+      include: {
+        subjects: {
+          include: {
+            timetable: {
+              include: {
+                class: {
+                  include: {
+                    _count: { select: { students: true } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher profile not found.' });
+    }
+
+    const classesMap = {};
+    teacher.subjects.forEach(sub => {
+      sub.timetable.forEach(slot => {
+        if (slot.class) {
+          classesMap[slot.class.id] = slot.class;
+        }
+      });
+    });
+    res.json(Object.values(classesMap));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching classes.', error: error.message });
+  }
+});
+
+// GET student fee dues for classes taught by this teacher
+router.get('/fees', async (req, res) => {
+  try {
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId: req.user.userId },
+      include: {
+        subjects: {
+          include: {
+            timetable: {
+              select: { classId: true }
+            }
+          }
+        }
+      }
+    });
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher profile not found.' });
+    }
+
+    const classIds = [];
+    teacher.subjects.forEach(sub => {
+      sub.timetable.forEach(slot => {
+        if (slot.classId && !classIds.includes(slot.classId)) {
+          classIds.push(slot.classId);
+        }
+      });
+    });
+
+    const fees = await prisma.feeDue.findMany({
+      where: {
+        student: {
+          classId: { in: classIds }
+        }
+      },
+      include: {
+        student: {
+          include: {
+            user: { select: { name: true } }
+          }
+        }
+      },
+      orderBy: { dueDate: 'asc' }
+    });
+    res.json(fees);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching student fees.', error: error.message });
+  }
+});
+
 export default router;

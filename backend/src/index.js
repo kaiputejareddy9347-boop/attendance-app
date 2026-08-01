@@ -9,6 +9,7 @@ import teacherRouter from './routes/teacher.js';
 import studentRouter from './routes/student.js';
 import notificationsRouter from './routes/notifications.js';
 import collegeRouter from './routes/college.js';
+import noticesRouter from './routes/notices.js';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use('/api/teacher', teacherRouter);
 app.use('/api/student', studentRouter);
 app.use('/api/college', collegeRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/notices', noticesRouter);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -111,34 +111,82 @@ const Navbar = () => {
           <nav className="sidebar-links">
             {user.role === 'STUDENT' && (
               <>
-                <Link to="/dashboard" className={`sidebar-link ${isActive('/dashboard') ? 'active' : ''}`}>
+                <Link to="/dashboard?tab=stats" className={`sidebar-link ${isActive('/dashboard', 'stats') ? 'active' : ''}`}>
                   <LayoutDashboard size={18} />
                   <span>Dashboard</span>
                 </Link>
-                <Link to="/timetable" className={`sidebar-link ${isActive('/timetable') ? 'active' : ''}`}>
+                <Link to="/dashboard?tab=courses" className={`sidebar-link ${isActive('/dashboard', 'courses') ? 'active' : ''}`}>
+                  <BookOpen size={18} />
+                  <span>Courses</span>
+                </Link>
+                <Link to="/dashboard?tab=classes" className={`sidebar-link ${isActive('/dashboard', 'classes') ? 'active' : ''}`}>
+                  <Layers size={18} />
+                  <span>Classes</span>
+                </Link>
+                <Link to="/dashboard?tab=timetable" className={`sidebar-link ${isActive('/dashboard', 'timetable') ? 'active' : ''}`}>
                   <Clock size={18} />
                   <span>Timetable</span>
                 </Link>
-                <Link to="/leaves" className={`sidebar-link ${isActive('/leaves') ? 'active' : ''}`}>
+                <Link to="/dashboard?tab=fees" className={`sidebar-link ${isActive('/dashboard', 'fees') ? 'active' : ''}`}>
+                  <CreditCard size={18} />
+                  <span>Fee Dues</span>
+                </Link>
+                <Link to="/dashboard?tab=leaves" className={`sidebar-link ${isActive('/dashboard', 'leaves') ? 'active' : ''}`}>
                   <FileText size={18} />
                   <span>Leaves</span>
+                </Link>
+                <Link to="/dashboard?tab=notice" className={`sidebar-link ${isActive('/dashboard', 'notice') ? 'active' : ''}`}>
+                  <FileText size={18} style={{ color: 'var(--color-late)' }} />
+                  <span>Notice Board</span>
+                </Link>
+                <Link to="/dashboard?tab=branding" className={`sidebar-link ${isActive('/dashboard', 'branding') ? 'active' : ''}`}>
+                  <Settings size={18} />
+                  <span>Brand Info</span>
                 </Link>
               </>
             )}
 
             {user.role === 'TEACHER' && (
               <>
-                <Link to="/teacher/dashboard" className={`sidebar-link ${isActive('/teacher/dashboard') ? 'active' : ''}`}>
+                <Link to="/teacher/dashboard?tab=stats" className={`sidebar-link ${isActive('/teacher/dashboard', 'stats') ? 'active' : ''}`}>
+                  <LayoutDashboard size={18} />
+                  <span>Dashboard</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=attendance" className={`sidebar-link ${isActive('/teacher/dashboard', 'attendance') ? 'active' : ''}`}>
                   <ClipboardCheck size={18} />
                   <span>Mark Attendance</span>
                 </Link>
-                <Link to="/teacher/history" className={`sidebar-link ${isActive('/teacher/history') ? 'active' : ''}`}>
+                <Link to="/teacher/dashboard?tab=courses" className={`sidebar-link ${isActive('/teacher/dashboard', 'courses') ? 'active' : ''}`}>
+                  <BookOpen size={18} />
+                  <span>Courses</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=classes" className={`sidebar-link ${isActive('/teacher/dashboard', 'classes') ? 'active' : ''}`}>
+                  <Layers size={18} />
+                  <span>Classes</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=timetable" className={`sidebar-link ${isActive('/teacher/dashboard', 'timetable') ? 'active' : ''}`}>
+                  <Clock size={18} />
+                  <span>Timetables</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=fees" className={`sidebar-link ${isActive('/teacher/dashboard', 'fees') ? 'active' : ''}`}>
+                  <CreditCard size={18} />
+                  <span>Fee Dues</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=history" className={`sidebar-link ${isActive('/teacher/dashboard', 'history') ? 'active' : ''}`}>
                   <History size={18} />
                   <span>History</span>
                 </Link>
-                <Link to="/teacher/leaves" className={`sidebar-link ${isActive('/teacher/leaves') ? 'active' : ''}`}>
+                <Link to="/teacher/dashboard?tab=leaves" className={`sidebar-link ${isActive('/teacher/dashboard', 'leaves') ? 'active' : ''}`}>
                   <FileText size={18} />
                   <span>Leave Requests</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=notice" className={`sidebar-link ${isActive('/teacher/dashboard', 'notice') ? 'active' : ''}`}>
+                  <FileText size={18} style={{ color: 'var(--color-late)' }} />
+                  <span>Notice Board</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=branding" className={`sidebar-link ${isActive('/teacher/dashboard', 'branding') ? 'active' : ''}`}>
+                  <Settings size={18} />
+                  <span>Brand Info</span>
                 </Link>
               </>
             )}
