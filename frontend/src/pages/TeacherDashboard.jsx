@@ -328,6 +328,10 @@ const TeacherDashboard = () => {
 
   const handleSubmitAttendance = async (e) => {
     e.preventDefault();
+    if (scheduledTodaySlots.length === 0) {
+      showToast(`Access Restricted: No lecture scheduled in your timetable for ${getDayName(selectedDayNum)}.`, 'error');
+      return;
+    }
     if (!selectedSubjectId || students.length === 0) {
       showToast('No class active for marking.', 'warning');
       return;
@@ -484,11 +488,8 @@ const TeacherDashboard = () => {
           {/* Calendar connections */}
           <div className="card col-span-4" style={{ height: 'fit-content' }}>
             <h3>Lectures Calendar</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '16px' }}>
-              Select a date. The system automatically lists the timetable lecture slots scheduled for that weekday.
-            </p>
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginTop: '12px' }}>
               <label className="form-label" htmlFor="attDate">Date Selector</label>
               <input 
                 id="attDate" 
@@ -508,8 +509,8 @@ const TeacherDashboard = () => {
               </h4>
 
               {scheduledTodaySlots.length === 0 ? (
-                <div style={{ padding: '16px', border: '1px dashed var(--glass-border)', borderRadius: '10px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No timetable lectures scheduled for this weekday.</p>
+                <div style={{ padding: '16px', border: '1px dashed rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.04)', borderRadius: '10px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--color-absent)', fontWeight: '600' }}>🔒 No lectures scheduled in timetable for this weekday.</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -531,7 +532,7 @@ const TeacherDashboard = () => {
                       }}
                     >
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{slot.startTime} - {slot.endTime}</div>
-                      <div style={{ fontWeight: '600', fontSize: '0.9rem', marginTop: '4px' }}>{slot.subject.name} ({slot.subject.code})</div>
+                      <div style={{ fontWeight: '600', fontSize: '0.9rem', marginTop: '4px' }}>{slot.subject.name}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--accent-secondary)', marginTop: '4px' }}>Class: {slot.class.name} | Room {slot.room}</div>
                     </button>
                   ))}
@@ -562,6 +563,7 @@ const TeacherDashboard = () => {
           <div className="card col-span-8">
             {(() => {
               const canEditAttendance = () => {
+                if (scheduledTodaySlots.length === 0) return false;
                 if (!isAttendanceMarked) return true;
                 if (!attendanceMarkedAt) return true;
                 const hoursElapsed = (new Date() - new Date(attendanceMarkedAt)) / (1000 * 60 * 60);
@@ -594,8 +596,24 @@ const TeacherDashboard = () => {
                     </div>
                   ) : (
                     <form onSubmit={handleSubmitAttendance}>
-                      {/* Submissions Limit Warning Alerts */}
-                      {isAttendanceMarked && (
+                      {/* Access Restricted Warning if Timetable Doesn't Match */}
+                      {scheduledTodaySlots.length === 0 ? (
+                        <div style={{
+                          marginBottom: '16px',
+                          padding: '14px 18px',
+                          borderRadius: '10px',
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          color: 'var(--color-absent)',
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}>
+                          🔒 Access Restricted: No lecture scheduled in your timetable for {getDayName(selectedDayNum)} ({new Date(date).toLocaleDateString()}). Attendance marking is disabled for this date.
+                        </div>
+                      ) : isAttendanceMarked && (
                         <div style={{
                           marginBottom: '16px',
                           padding: '12px 16px',
@@ -690,9 +708,6 @@ const TeacherDashboard = () => {
       {activeTab === 'COURSES' && (
         <div className="card col-span-12">
           <h3>My Assigned Course Subjects</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            List of academic courses registered under your instruction.
-          </p>
           {subjects.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>No courses assigned to your profile.</p>
           ) : (

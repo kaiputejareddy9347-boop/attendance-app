@@ -400,9 +400,9 @@ const Navbar = () => {
               <LayoutDashboard size={20} />
               <span>Home</span>
             </Link>
-            <Link to="/admin/dashboard?tab=departments" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'departments') ? 'active' : ''}`}>
-              <Landmark size={20} />
-              <span>Departments</span>
+            <Link to="/admin/dashboard?tab=classes" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'classes') ? 'active' : ''}`}>
+              <Layers size={20} />
+              <span>Classes</span>
             </Link>
             <Link to="/admin/dashboard?tab=timetable" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'timetable') ? 'active' : ''}`}>
               <Clock size={20} />
