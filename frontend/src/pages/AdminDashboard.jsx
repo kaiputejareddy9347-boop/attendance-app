@@ -480,6 +480,7 @@ const AdminDashboard = () => {
             <button onClick={() => setActiveDirectory('SUBJECTS')} className={`tab-btn ${activeDirectory === 'SUBJECTS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><BookOpen size={14} /> Subjects</button>
             <button onClick={() => setActiveDirectory('TEACHERS')} className={`tab-btn ${activeDirectory === 'TEACHERS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Users size={14} /> Faculty</button>
             <button onClick={() => setActiveDirectory('STUDENTS')} className={`tab-btn ${activeDirectory === 'STUDENTS' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Users size={14} /> Enrolled Students</button>
+            <button onClick={() => setActiveDirectory('TIMETABLE')} className={`tab-btn ${activeDirectory === 'TIMETABLE' ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '8px 16px' }}><Clock size={14} /> Timetable Matrix</button>
           </div>
 
           {/* Active Directory Listings Table Container */}
@@ -656,6 +657,54 @@ const AdminDashboard = () => {
                             <td className="attendance-cell" style={{ fontWeight: '600' }}>{st.user?.name}</td>
                             <td className="attendance-cell" style={{ color: 'var(--text-muted)' }}>{st.user?.email}</td>
                             <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '600' }}>{st.class?.name || 'N/A'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeDirectory === 'TIMETABLE' && (
+              <>
+                <h3 style={{ marginBottom: '16px' }}>Weekly Timetable Schedule Matrix ({timetable.length} Slots)</h3>
+                {timetable.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No timetable schedule slots configured.</p>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="attendance-list">
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Day</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Time Slot</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Course Subject</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Class Group</th>
+                          <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Room</th>
+                          <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Faculty</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {timetable.map((slot) => (
+                          <tr key={slot.id} className="attendance-row">
+                            <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>
+                              {getDayName(slot.dayOfWeek)}
+                            </td>
+                            <td className="attendance-cell" style={{ fontWeight: '600' }}>
+                              {slot.startTime} - {slot.endTime}
+                            </td>
+                            <td className="attendance-cell" style={{ fontWeight: '600' }}>
+                              {slot.subject.name} ({slot.subject.code})
+                            </td>
+                            <td className="attendance-cell" style={{ color: 'var(--text-secondary)' }}>
+                              {slot.class.name}
+                            </td>
+                            <td className="attendance-cell" style={{ fontWeight: '500' }}>
+                              {slot.room}
+                            </td>
+                            <td className="attendance-cell" style={{ textAlign: 'right', color: 'var(--text-muted)' }}>
+                              {slot.subject.teacher?.user?.name || 'N/A'}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ClipboardCheck } from 'lucide-react';
+import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar } from 'lucide-react';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -9,6 +9,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [collegeConfig, setCollegeConfig] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -18,6 +19,11 @@ const Navbar = () => {
     }
   }, [user]);
 
+  // Close sidebar on path change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
   if (!user) return null;
 
   const handleLogout = () => {
@@ -26,64 +32,130 @@ const Navbar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
+  
+  const collegeDisplayName = collegeConfig 
+    ? `${collegeConfig.name} (${collegeConfig.code})` 
+    : 'AttendancePortal';
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <Link to="/" className="navbar-brand">
-          <ClipboardCheck size={24} />
-          <span>{collegeConfig ? `${collegeConfig.name} (${collegeConfig.code})` : 'AttendancePortal'}</span>
+    <>
+      {/* Mobile Top Bar */}
+      <header className="mobile-header">
+        <button 
+          onClick={() => setSidebarOpen(true)} 
+          className="mobile-menu-btn"
+          aria-label="Open Menu"
+        >
+          <Menu size={20} />
+        </button>
+        <Link to="/" className="mobile-header-brand">
+          <ClipboardCheck size={20} style={{ color: 'var(--accent-primary)' }} />
+          <span style={{ fontSize: '0.95rem', fontWeight: 800 }}>{collegeConfig ? collegeConfig.code : 'Attendance'}</span>
         </Link>
+        <button 
+          onClick={handleLogout} 
+          style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '6px' }}
+          title="Log Out"
+        >
+          <LogOut size={18} />
+        </button>
+      </header>
 
-        <div className="navbar-links">
-          {user.role === 'STUDENT' && (
-            <>
-              <Link to="/dashboard" className={`navbar-link ${isActive('/dashboard') ? 'active' : ''}`}>
-                Dashboard
-              </Link>
-              <Link to="/timetable" className={`navbar-link ${isActive('/timetable') ? 'active' : ''}`}>
-                Timetable
-              </Link>
-              <Link to="/leaves" className={`navbar-link ${isActive('/leaves') ? 'active' : ''}`}>
-                Leaves
-              </Link>
-            </>
-          )}
+      {/* Sidebar Overlay (Mobile Backdrop) */}
+      {sidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-          {user.role === 'TEACHER' && (
-            <>
-              <Link to="/teacher/dashboard" className={`navbar-link ${isActive('/teacher/dashboard') ? 'active' : ''}`}>
-                Mark Attendance
-              </Link>
-              <Link to="/teacher/history" className={`navbar-link ${isActive('/teacher/history') ? 'active' : ''}`}>
-                History
-              </Link>
-              <Link to="/teacher/leaves" className={`navbar-link ${isActive('/teacher/leaves') ? 'active' : ''}`}>
-                Leave Requests
-              </Link>
-            </>
-          )}
-
-          {user.role === 'ADMIN' && (
-            <>
-              <Link to="/admin/dashboard" className={`navbar-link ${isActive('/admin/dashboard') ? 'active' : ''}`}>
-                Control Panel
-              </Link>
-            </>
-          )}
-        </div>
-
-        <div className="navbar-user">
-          <div className="navbar-user-name">
-            {user.name} <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>({user.role})</span>
+      {/* Sidebar Navigation Drawer */}
+      <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Brand header */}
+          <div className="sidebar-brand">
+            <ClipboardCheck size={24} style={{ color: 'var(--accent-primary)' }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {collegeConfig ? collegeConfig.name : 'AttendancePortal'}
+            </span>
+            {sidebarOpen && (
+              <button 
+                onClick={() => setSidebarOpen(false)} 
+                style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                className="mobile-only"
+              >
+                <X size={18} />
+              </button>
+            )}
           </div>
-          <button onClick={handleLogout} className="btn btn-secondary btn-sm" title="Log Out">
-            <LogOut size={16} />
-            <span>Logout</span>
-          </button>
+
+          {/* User profile card */}
+          <div className="sidebar-profile">
+            <div className="sidebar-profile-avatar">
+              {user.name.charAt(0)}
+            </div>
+            <div className="sidebar-profile-info">
+              <span className="sidebar-profile-name">{user.name}</span>
+              <span className="sidebar-profile-role">{user.role}</span>
+            </div>
+          </div>
+
+          {/* Navigation Links list */}
+          <nav className="sidebar-links">
+            {user.role === 'STUDENT' && (
+              <>
+                <Link to="/dashboard" className={`sidebar-link ${isActive('/dashboard') ? 'active' : ''}`}>
+                  <LayoutDashboard size={18} />
+                  <span>Dashboard</span>
+                </Link>
+                <Link to="/timetable" className={`sidebar-link ${isActive('/timetable') ? 'active' : ''}`}>
+                  <Clock size={18} />
+                  <span>Timetable</span>
+                </Link>
+                <Link to="/leaves" className={`sidebar-link ${isActive('/leaves') ? 'active' : ''}`}>
+                  <FileText size={18} />
+                  <span>Leaves</span>
+                </Link>
+              </>
+            )}
+
+            {user.role === 'TEACHER' && (
+              <>
+                <Link to="/teacher/dashboard" className={`sidebar-link ${isActive('/teacher/dashboard') ? 'active' : ''}`}>
+                  <ClipboardCheck size={18} />
+                  <span>Mark Attendance</span>
+                </Link>
+                <Link to="/teacher/history" className={`sidebar-link ${isActive('/teacher/history') ? 'active' : ''}`}>
+                  <History size={18} />
+                  <span>History</span>
+                </Link>
+                <Link to="/teacher/leaves" className={`sidebar-link ${isActive('/teacher/leaves') ? 'active' : ''}`}>
+                  <FileText size={18} />
+                  <span>Leave Requests</span>
+                </Link>
+              </>
+            )}
+
+            {user.role === 'ADMIN' && (
+              <>
+                <Link to="/admin/dashboard" className={`sidebar-link ${isActive('/admin/dashboard') ? 'active' : ''}`}>
+                  <Settings size={18} />
+                  <span>Control Panel</span>
+                </Link>
+              </>
+            )}
+          </nav>
+
+          {/* Sidebar Footer Logout */}
+          <div className="sidebar-footer">
+            <button onClick={handleLogout} className="sidebar-logout-btn">
+              <LogOut size={16} />
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
-      </div>
-    </nav>
+      </aside>
+    </>
   );
 };
 

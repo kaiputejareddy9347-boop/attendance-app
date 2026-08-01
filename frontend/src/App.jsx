@@ -65,89 +65,62 @@ const HomeRedirect = () => {
   return <Navigate to="/login" replace />;
 };
 
+const AppContent = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>Loading session...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </div>
+    );
+  }
+
+  return (
+    <div className="layout-wrapper">
+      <Navbar />
+      <main className="main-content-layout">
+        <Routes>
+          {/* Protected Student Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />
+          <Route path="/timetable" element={<ProtectedRoute allowedRoles={['STUDENT']}><Timetable /></ProtectedRoute>} />
+          <Route path="/leaves" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentLeaves /></ProtectedRoute>} />
+
+          {/* Protected Teacher Routes */}
+          <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['TEACHER']}><TeacherDashboard /></ProtectedRoute>} />
+          <Route path="/teacher/history" element={<ProtectedRoute allowedRoles={['TEACHER']}><TeacherHistory /></ProtectedRoute>} />
+          <Route path="/teacher/leaves" element={<ProtectedRoute allowedRoles={['TEACHER']}><TeacherLeaves /></ProtectedRoute>} />
+
+          {/* Protected Admin Routes */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+
+          {/* Home Redirect and Catch-all */}
+          <Route path="/" element={<HomeRedirect />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+    </div>
+  );
+};
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <Navbar />
-            <div style={{ flex: 1 }}>
-              <Routes>
-                {/* Public Auth Routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-
-                {/* Role-based Protected Student Routes */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute allowedRoles={['STUDENT']}>
-                      <StudentDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/timetable"
-                  element={
-                    <ProtectedRoute allowedRoles={['STUDENT']}>
-                      <Timetable />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/leaves"
-                  element={
-                    <ProtectedRoute allowedRoles={['STUDENT']}>
-                      <StudentLeaves />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Role-based Protected Teacher Routes */}
-                <Route
-                  path="/teacher/dashboard"
-                  element={
-                    <ProtectedRoute allowedRoles={['TEACHER']}>
-                      <TeacherDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/teacher/history"
-                  element={
-                    <ProtectedRoute allowedRoles={['TEACHER']}>
-                      <TeacherHistory />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/teacher/leaves"
-                  element={
-                    <ProtectedRoute allowedRoles={['TEACHER']}>
-                      <TeacherLeaves />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Role-based Protected Admin Routes */}
-                <Route
-                  path="/admin/dashboard"
-                  element={
-                    <ProtectedRoute allowedRoles={['ADMIN']}>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Root Redirection */}
-                <Route path="/" element={<HomeRedirect />} />
-
-                {/* Catch-all Fallback */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </div>
-          </div>
+          <AppContent />
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
