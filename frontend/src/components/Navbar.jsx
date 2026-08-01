@@ -274,6 +274,84 @@ const Navbar = () => {
           </div>
         </div>
       </aside>
+
+      {/* Floating Glassmorphic Bottom Navigation Bar (Mobile Only) */}
+      <nav className="mobile-bottom-nav">
+        {user.role === 'STUDENT' && (
+          <>
+            <Link to="/dashboard?tab=stats" className={`mobile-bottom-nav-item ${isActive('/dashboard', 'stats') ? 'active' : ''}`}>
+              <LayoutDashboard size={20} />
+              <span>Home</span>
+            </Link>
+            <Link to="/dashboard?tab=calendar" className={`mobile-bottom-nav-item ${isActive('/dashboard', 'calendar') ? 'active' : ''}`}>
+              <Calendar size={20} />
+              <span>Planner</span>
+            </Link>
+            <Link to="/dashboard?tab=marks" className={`mobile-bottom-nav-item ${isActive('/dashboard', 'marks') ? 'active' : ''}`}>
+              <Award size={20} />
+              <span>Marks</span>
+            </Link>
+            <Link to="/dashboard?tab=notice" className={`mobile-bottom-nav-item ${isActive('/dashboard', 'notice') ? 'active' : ''}`}>
+              <FileText size={20} />
+              <span>Notices</span>
+            </Link>
+            <button onClick={() => setSidebarOpen(true)} className="mobile-bottom-nav-item">
+              <Menu size={20} />
+              <span>Menu</span>
+            </button>
+          </>
+        )}
+
+        {user.role === 'TEACHER' && (
+          <>
+            <Link to="/teacher/dashboard?tab=stats" className={`mobile-bottom-nav-item ${isActive('/teacher/dashboard', 'stats') ? 'active' : ''}`}>
+              <LayoutDashboard size={20} />
+              <span>Home</span>
+            </Link>
+            <Link to="/teacher/dashboard?tab=attendance" className={`mobile-bottom-nav-item ${isActive('/teacher/dashboard', 'attendance') ? 'active' : ''}`}>
+              <ClipboardCheck size={20} />
+              <span>Mark</span>
+            </Link>
+            <Link to="/teacher/dashboard?tab=marks" className={`mobile-bottom-nav-item ${isActive('/teacher/dashboard', 'marks') ? 'active' : ''}`}>
+              <Award size={20} />
+              <span>Grades</span>
+            </Link>
+            <Link to="/teacher/dashboard?tab=notice" className={`mobile-bottom-nav-item ${isActive('/teacher/dashboard', 'notice') ? 'active' : ''}`}>
+              <FileText size={20} />
+              <span>Notice</span>
+            </Link>
+            <button onClick={() => setSidebarOpen(true)} className="mobile-bottom-nav-item">
+              <Menu size={20} />
+              <span>Menu</span>
+            </button>
+          </>
+        )}
+
+        {user.role === 'ADMIN' && (
+          <>
+            <Link to="/admin/dashboard?tab=stats" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'stats') ? 'active' : ''}`}>
+              <LayoutDashboard size={20} />
+              <span>Home</span>
+            </Link>
+            <Link to="/admin/dashboard?tab=classes" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'classes') ? 'active' : ''}`}>
+              <Layers size={20} />
+              <span>Classes</span>
+            </Link>
+            <Link to="/admin/dashboard?tab=timetable" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'timetable') ? 'active' : ''}`}>
+              <Clock size={20} />
+              <span>Schedule</span>
+            </Link>
+            <Link to="/admin/dashboard?tab=timeline" className={`mobile-bottom-nav-item ${isActive('/admin/dashboard', 'timeline') ? 'active' : ''}`}>
+              <Calendar size={20} />
+              <span>Timeline</span>
+            </Link>
+            <button onClick={() => setSidebarOpen(true)} className="mobile-bottom-nav-item">
+              <Menu size={20} />
+              <span>Menu</span>
+            </button>
+          </>
+        )}
+      </nav>
     </>
   );
 };
