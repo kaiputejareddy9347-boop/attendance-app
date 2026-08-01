@@ -260,9 +260,9 @@ const StudentDashboard = () => {
                   cy={radius}
                 />
               </svg>
-              <div className="progress-ring-value">
-                {summary.percentage}%
-                <span style={{ fontSize: '0.8rem', color: summary.percentage >= 75 ? 'var(--color-present)' : 'var(--color-absent)' }}>
+              <div className="progress-ring-value" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '2rem', fontWeight: '800', lineHeight: 1 }}>{summary.percentage}%</span>
+                <span style={{ display: 'block', marginTop: '6px', fontSize: '0.75rem', fontWeight: '600', color: summary.percentage >= 75 ? 'var(--color-present)' : 'var(--color-absent)' }}>
                   {summary.percentage >= 75 ? 'Good Standing' : 'Low Attendance'}
                 </span>
               </div>
@@ -387,9 +387,6 @@ const StudentDashboard = () => {
       {activeTab === 'COURSES' && (
         <div className="card col-span-12">
           <h3>Registered Course Subjects</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            List of academic courses registered for your semester.
-          </p>
           {breakdown.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>No subjects found.</p>
           ) : (
@@ -534,9 +531,6 @@ const StudentDashboard = () => {
       {activeTab === 'FEES' && (
         <div className="card col-span-12">
           <h3>Academic Fees Statement</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Monitor outstanding invoices, tuition fees, and payment histories.
-          </p>
           {fees.length === 0 ? (
             <div style={{ padding: '24px', background: 'rgba(255,255,255,0.01)', borderRadius: '12px', border: '1px dashed var(--glass-border)', textAlign: 'center' }}>
               <p style={{ color: 'var(--text-muted)' }}>No fee allocations recorded.</p>
@@ -584,9 +578,6 @@ const StudentDashboard = () => {
           {/* Apply Form */}
           <div className="card col-span-6">
             <h3>Apply for Leave</h3>
-            <p style={{ fontSize: '0.9rem', marginBottom: '20px', color: 'var(--text-muted)' }}>
-              Submit requests to seek academic leave approvals from class advisors.
-            </p>
             <form onSubmit={handleRequestLeave}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div className="form-group">
@@ -672,9 +663,6 @@ const StudentDashboard = () => {
       {activeTab === 'NOTICE' && (
         <div className="card col-span-12">
           <h3>College Notice Board</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Public announcements posted by instructors and administrative departments.
-          </p>
 
           {loadingNotices ? (
             <p>Loading notices...</p>
@@ -751,10 +739,7 @@ const StudentDashboard = () => {
           <div className="profile-avatar" style={{ margin: '0 auto 20px', width: '80px', height: '80px', fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%)' }}>
             {user?.name?.charAt(0) || 'S'}
           </div>
-          <h3 style={{ marginBottom: '4px' }}>Student Profile</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '24px' }}>
-            Enrolled Student Credentials & Registration Specs
-          </p>
+          <h3 style={{ marginBottom: '16px' }}>Student Profile</h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
             <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
@@ -811,9 +796,6 @@ const StudentDashboard = () => {
           <div className="dashboard-grid">
             <div className="card col-span-5">
               <h3>Academic Calendar Tracker</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-                Select a calendar date to track scheduled classes, timeframe validity, and your logged attendance.
-              </p>
 
               <div className="form-group">
                 <label className="form-label" htmlFor="planDate">Choose Date</label>
@@ -916,9 +898,6 @@ const StudentDashboard = () => {
       {activeTab === 'HOLIDAYS' && (
         <div className="card col-span-12">
           <h3>Upcoming College Recess Breaks</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Official scheduled holidays and term breaks declared by the administration.
-          </p>
           {holidays.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>No recess breaks or holidays scheduled currently.</p>
           ) : (
