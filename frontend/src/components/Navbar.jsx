@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User, Award, Bell, Check } from 'lucide-react';
+import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User, Award, Bell, Check, Calculator } from 'lucide-react';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -235,6 +235,10 @@ const Navbar = () => {
                   <Clock size={18} />
                   <span>Timetable</span>
                 </Link>
+                <Link to="/dashboard?tab=bunk" className={`sidebar-link ${isActive('/dashboard', 'bunk') ? 'active' : ''}`}>
+                  <Calculator size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Bunk Estimator</span>
+                </Link>
                 <Link to="/dashboard?tab=fees" className={`sidebar-link ${isActive('/dashboard', 'fees') ? 'active' : ''}`}>
                   <CreditCard size={18} />
                   <span>Fee Dues</span>
@@ -253,7 +257,7 @@ const Navbar = () => {
                 </Link>
                 <Link to="/dashboard?tab=branding" className={`sidebar-link ${isActive('/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
-                  <span>Brand Info</span>
+                  <span>College Info</span>
                 </Link>
               </>
             )}
@@ -290,7 +294,7 @@ const Navbar = () => {
                 </Link>
                 <Link to="/teacher/dashboard?tab=branding" className={`sidebar-link ${isActive('/teacher/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
-                  <span>Brand Info</span>
+                  <span>College Info</span>
                 </Link>
               </>
             )}
@@ -319,7 +323,7 @@ const Navbar = () => {
                 </Link>
                 <Link to="/admin/dashboard?tab=branding" className={`sidebar-link ${isActive('/admin/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
-                  <span>Brand Settings</span>
+                  <span>College Info</span>
                 </Link>
               </>
             )}

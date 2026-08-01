@@ -173,14 +173,15 @@ const StudentDashboard = () => {
 
   const handleRequestLeave = async (e) => {
     e.preventDefault();
-    if (!startDate || !endDate || !reason) {
-      showToast('Please fill in all leave request fields.', 'warning');
+    const effectiveEndDate = endDate || startDate;
+    if (!startDate || !reason) {
+      showToast('Please select a start date and enter a reason.', 'warning');
       return;
     }
 
     setSubmittingLeave(true);
     try {
-      await axios.post('/api/student/leaves', { startDate, endDate, reason });
+      await axios.post('/api/student/leaves', { startDate, endDate: effectiveEndDate, reason });
       showToast('Leave request submitted successfully.', 'success');
       setStartDate('');
       setEndDate('');
@@ -417,6 +418,110 @@ const StudentDashboard = () => {
                   }
                 })()}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: BUNK ESTIMATOR */}
+      {activeTab === 'BUNK' && (
+        <div className="card col-span-12" style={{ maxWidth: '700px', margin: '0 auto' }}>
+          <h3>Bunk & Attendance Calculator</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
+            {/* Skip Estimator */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <h4 style={{ fontWeight: '700', marginBottom: '12px' }}>Bunk Estimator</h4>
+              <div className="form-group">
+                <label className="form-label" htmlFor="bunkInputDedicated">Bunk (Skip) Upcoming Sessions</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <input 
+                    id="bunkInputDedicated"
+                    type="range" 
+                    min="1" 
+                    max="20" 
+                    className="form-input" 
+                    style={{ flex: 1, padding: 0 }}
+                    value={bunkSessions} 
+                    onChange={(e) => setBunkSessions(parseInt(e.target.value))} 
+                  />
+                  <strong style={{ fontSize: '1.2rem', width: '40px', textAlign: 'right' }}>{bunkSessions}</strong>
+                </div>
+              </div>
+
+              {(() => {
+                const P = summary.present + summary.late;
+                const T = summary.total;
+                const estTotal = T + bunkSessions;
+                const estPercentage = estTotal > 0 ? Math.round((P / estTotal) * 100) : 100;
+                const isSafe = estPercentage >= 75;
+
+                return (
+                  <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', background: isSafe ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)', border: isSafe ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Estimated Attendance:</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '800', color: isSafe ? 'var(--color-present)' : 'var(--color-absent)', margin: '4px 0' }}>
+                      {estPercentage}%
+                    </div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: '600', color: isSafe ? 'var(--color-present)' : 'var(--color-absent)' }}>
+                      {isSafe ? '✓ Safe: Still above 75% threshold' : '⚠️ Warning: Drops below 75% attendance threshold!'}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Goal Tracker */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <h4 style={{ fontWeight: '700', marginBottom: '12px' }}>Goal Planner</h4>
+              <div className="form-group">
+                <label className="form-label" htmlFor="goalSelectDedicated">Target Threshold (%)</label>
+                <select 
+                  id="goalSelectDedicated"
+                  className="form-select" 
+                  value={targetPercentage} 
+                  onChange={(e) => setTargetPercentage(parseInt(e.target.value))}
+                >
+                  <option value={75}>75% (Minimum Passing)</option>
+                  <option value={80}>80% (Good Standing)</option>
+                  <option value={85}>85% (Excellent Standing)</option>
+                  <option value={90}>90% (Distinction Goal)</option>
+                </select>
+              </div>
+
+              {(() => {
+                const P = summary.present + summary.late;
+                const T = summary.total;
+                const currentPct = T > 0 ? (P / T) * 100 : 100;
+
+                if (currentPct < targetPercentage) {
+                  const needed = Math.ceil((targetPercentage * T - 100 * P) / (100 - targetPercentage));
+                  const safeNeeded = needed > 0 ? needed : 0;
+                  return (
+                    <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', color: 'var(--accent-secondary)' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Action Required:</div>
+                      <div style={{ fontSize: '1.05rem', fontWeight: '800', marginTop: '6px' }}>
+                        Attend <span style={{ fontSize: '1.4rem', color: '#fff' }}>{safeNeeded}</span> consecutive classes
+                      </div>
+                      <p style={{ fontSize: '0.75rem', marginTop: '4px', opacity: 0.9 }}>
+                        To raise your overall attendance from {summary.percentage}% to {targetPercentage}%.
+                      </p>
+                    </div>
+                  );
+                } else {
+                  const bunks = Math.floor((100 * P - targetPercentage * T) / targetPercentage);
+                  const safeBunks = bunks > 0 ? bunks : 0;
+                  return (
+                    <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', color: 'var(--color-present)' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bunk Allowance:</div>
+                      <div style={{ fontSize: '1.05rem', fontWeight: '800', marginTop: '6px' }}>
+                        You can bunk <span style={{ fontSize: '1.4rem', color: '#fff' }}>{safeBunks}</span> classes
+                      </div>
+                      <p style={{ fontSize: '0.75rem', marginTop: '4px', opacity: 0.9 }}>
+                        consecutively without falling below your target of {targetPercentage}%.
+                      </p>
+                    </div>
+                  );
+                }
+              })()}
             </div>
           </div>
         </div>
@@ -682,7 +787,9 @@ const StudentDashboard = () => {
                     <div>
                       <h5 style={{ fontWeight: '600' }}>{leave.reason}</h5>
                       <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        Duration: {new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}
+                        {new Date(leave.startDate).toLocaleDateString() === new Date(leave.endDate).toLocaleDateString()
+                          ? `Date: ${new Date(leave.startDate).toLocaleDateString()} (1 Day)`
+                          : `Duration: ${new Date(leave.startDate).toLocaleDateString()} - ${new Date(leave.endDate).toLocaleDateString()}`}
                       </p>
                     </div>
                     <span className={`badge badge-${leave.status.toLowerCase()}`}>
@@ -739,9 +846,9 @@ const StudentDashboard = () => {
       {/* TAB 8: BRANDING (SPECIFICATIONS) */}
       {activeTab === 'BRANDING' && (
         <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
             <Landmark size={22} style={{ color: 'var(--accent-primary)' }} />
-            College Institution Details
+            College Details
           </h3>
           
           {collegeConfig ? (
