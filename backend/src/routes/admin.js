@@ -264,18 +264,36 @@ router.delete('/timetable/:id', async (req, res) => {
 
 // PUT update college configuration
 router.put('/college-config', async (req, res) => {
-  const { name, code, logoUrl, academicYear } = req.body;
+  const { name, code, logoUrl, academicYear, semesterStart, semesterEnd } = req.body;
   try {
     const config = await prisma.collegeConfig.findFirst();
     let updated;
+
+    const parsedStart = semesterStart ? new Date(semesterStart) : undefined;
+    const parsedEnd = semesterEnd ? new Date(semesterEnd) : undefined;
+
     if (config) {
       updated = await prisma.collegeConfig.update({
         where: { id: config.id },
-        data: { name, code, logoUrl, academicYear },
+        data: { 
+          name, 
+          code, 
+          logoUrl, 
+          academicYear,
+          ...(parsedStart && { semesterStart: parsedStart }),
+          ...(parsedEnd && { semesterEnd: parsedEnd }),
+        },
       });
     } else {
       updated = await prisma.collegeConfig.create({
-        data: { name, code, logoUrl, academicYear },
+        data: { 
+          name, 
+          code, 
+          logoUrl, 
+          academicYear,
+          semesterStart: parsedStart || new Date("2026-08-01T00:00:00Z"),
+          semesterEnd: parsedEnd || new Date("2026-12-31T23:59:59Z"),
+        },
       });
     }
     res.json(updated);

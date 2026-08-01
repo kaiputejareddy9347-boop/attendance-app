@@ -33,6 +33,8 @@ const AdminDashboard = () => {
   const [collegeCode, setCollegeCode] = useState('');
   const [academicYear, setAcademicYear] = useState('');
   const [updatingConfig, setUpdatingConfig] = useState(false);
+  const [semesterStart, setSemesterStart] = useState('');
+  const [semesterEnd, setSemesterEnd] = useState('');
 
   // Create class form fields
   const [className, setClassName] = useState('');
@@ -173,6 +175,8 @@ const AdminDashboard = () => {
         setCollegeName(res.data.name);
         setCollegeCode(res.data.code);
         setAcademicYear(res.data.academicYear);
+        if (res.data.semesterStart) setSemesterStart(res.data.semesterStart.split('T')[0]);
+        if (res.data.semesterEnd) setSemesterEnd(res.data.semesterEnd.split('T')[0]);
       }
     } catch (err) {
       console.error('Error fetching college configuration', err);
@@ -181,8 +185,8 @@ const AdminDashboard = () => {
 
   const handleUpdateConfig = async (e) => {
     e.preventDefault();
-    if (!collegeName || !collegeCode || !academicYear) {
-      showToast('All branding fields are required.', 'warning');
+    if (!collegeName || !collegeCode || !academicYear || !semesterStart || !semesterEnd) {
+      showToast('All branding and semester date fields are required.', 'warning');
       return;
     }
     setUpdatingConfig(true);
@@ -191,6 +195,8 @@ const AdminDashboard = () => {
         name: collegeName,
         code: collegeCode,
         academicYear,
+        semesterStart,
+        semesterEnd,
       });
       showToast('College configuration updated successfully.', 'success');
       window.location.reload();
@@ -1527,6 +1533,17 @@ const AdminDashboard = () => {
               <div className="form-group">
                 <label className="form-label" htmlFor="colYear">Academic Year</label>
                 <input id="colYear" type="text" className="form-input" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} placeholder="e.g. 2026-2027" />
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="colStart">Semester Start Date</label>
+                <input id="colStart" type="date" className="form-input" value={semesterStart} onChange={(e) => setSemesterStart(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="colEnd">Semester End Date</label>
+                <input id="colEnd" type="date" className="form-input" value={semesterEnd} onChange={(e) => setSemesterEnd(e.target.value)} />
               </div>
             </div>
             <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '12px' }} disabled={updatingConfig}>

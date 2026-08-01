@@ -158,6 +158,8 @@ model CollegeConfig {
   code            String   @default("CTU")
   logoUrl         String   @default("")
   academicYear    String   @default("2026-2027")
+  semesterStart   DateTime @default("2026-08-01T00:00:00Z")
+  semesterEnd     DateTime @default("2026-12-31T23:59:59Z")
 }
 
 model FeeDue {

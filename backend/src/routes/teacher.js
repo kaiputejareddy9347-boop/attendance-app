@@ -73,6 +73,27 @@ router.post('/attendance', async (req, res) => {
     const parsedDate = new Date(date);
     parsedDate.setUTCHours(0, 0, 0, 0);
 
+    const today = new Date();
+    today.setUTCHours(23, 59, 59, 999);
+    if (parsedDate > today) {
+      return res.status(400).json({ message: 'Attendance cannot be marked for future dates.' });
+    }
+
+    // Fetch active semester configuration
+    const config = await prisma.collegeConfig.findFirst();
+    if (config) {
+      const semesterStart = new Date(config.semesterStart);
+      const semesterEnd = new Date(config.semesterEnd);
+      semesterStart.setUTCHours(0, 0, 0, 0);
+      semesterEnd.setUTCHours(23, 59, 59, 999);
+
+      if (parsedDate < semesterStart || parsedDate > semesterEnd) {
+        return res.status(400).json({ 
+          message: `Attendance can only be marked within the active semester timeline (${semesterStart.toISOString().split('T')[0]} to ${semesterEnd.toISOString().split('T')[0]}).` 
+        });
+      }
+    }
+
     const teacher = await prisma.teacher.findUnique({
       where: { userId: req.user.userId },
     });
