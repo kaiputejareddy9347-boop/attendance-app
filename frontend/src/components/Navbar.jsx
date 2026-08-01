@@ -139,6 +139,10 @@ const Navbar = () => {
                   <FileText size={18} style={{ color: 'var(--color-late)' }} />
                   <span>Notice Board</span>
                 </Link>
+                <Link to="/dashboard?tab=calendar" className={`sidebar-link ${isActive('/dashboard', 'calendar') ? 'active' : ''}`}>
+                  <Calendar size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Calendar Planner</span>
+                </Link>
                 <Link to="/dashboard?tab=profile" className={`sidebar-link ${isActive('/dashboard', 'profile') ? 'active' : ''}`}>
                   <User size={18} />
                   <span>My Profile</span>
@@ -187,6 +191,10 @@ const Navbar = () => {
                 <Link to="/teacher/dashboard?tab=notice" className={`sidebar-link ${isActive('/teacher/dashboard', 'notice') ? 'active' : ''}`}>
                   <FileText size={18} style={{ color: 'var(--color-late)' }} />
                   <span>Notice Board</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=calendar" className={`sidebar-link ${isActive('/teacher/dashboard', 'calendar') ? 'active' : ''}`}>
+                  <Calendar size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Calendar Planner</span>
                 </Link>
                 <Link to="/teacher/dashboard?tab=profile" className={`sidebar-link ${isActive('/teacher/dashboard', 'profile') ? 'active' : ''}`}>
                   <User size={18} />

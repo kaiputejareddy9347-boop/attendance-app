@@ -7,6 +7,39 @@ const router = express.Router();
 // All routes here require TEACHER role
 router.use(authenticate, authorize('TEACHER'));
 
+// GET teacher's attendance logs on a specific date
+router.get('/attendance-by-date', async (req, res) => {
+  const { date } = req.query;
+  if (!date) return res.status(400).json({ message: 'Date parameter is required.' });
+
+  try {
+    const parsedDate = new Date(date);
+    parsedDate.setUTCHours(0, 0, 0, 0);
+
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId: req.user.userId }
+    });
+    if (!teacher) return res.status(404).json({ message: 'Teacher profile not found.' });
+
+    // Fetch attendance sheets marked by this teacher on this date
+    const records = await prisma.attendance.findMany({
+      where: {
+        markedById: teacher.id,
+        date: parsedDate,
+      },
+      select: {
+        id: true,
+        status: true,
+        studentId: true,
+        subjectId: true,
+      }
+    });
+    res.json(records);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching date attendance logs.', error: error.message });
+  }
+});
+
 // Get subjects taught by the teacher
 router.get('/subjects', async (req, res) => {
   try {

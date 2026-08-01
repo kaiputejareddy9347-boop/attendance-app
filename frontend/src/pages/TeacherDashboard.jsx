@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
-import { ClipboardCheck, UserCheck, FileText, Check, X, BookOpen, Calendar, Clock, Layers, History, Settings, Landmark, CreditCard, Trash2 } from 'lucide-react';
+import { ClipboardCheck, UserCheck, FileText, Check, X, BookOpen, Calendar, Clock, Layers, History, Settings, Landmark, CreditCard, Trash2, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const TeacherDashboard = () => {
   const { user } = useAuth();
@@ -47,6 +47,29 @@ const TeacherDashboard = () => {
   const [noticeTitle, setNoticeTitle] = useState('');
   const [noticeContent, setNoticeContent] = useState('');
   const [postingNotice, setPostingNotice] = useState(false);
+
+  // Calendar Planner states
+  const [plannerDate, setPlannerDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dateAttendance, setDateAttendance] = useState([]);
+  const [loadingDateAtt, setLoadingDateAtt] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'CALENDAR') {
+      fetchDateAttendance(plannerDate);
+    }
+  }, [plannerDate, activeTab]);
+
+  const fetchDateAttendance = async (targetDate) => {
+    setLoadingDateAtt(true);
+    try {
+      const res = await axios.get(`/api/teacher/attendance-by-date?date=${targetDate}`);
+      setDateAttendance(res.data);
+    } catch (err) {
+      console.error('Error fetching date attendance logs', err);
+    } finally {
+      setLoadingDateAtt(false);
+    }
+  };
 
   useEffect(() => {
     fetchInitialData();
@@ -971,6 +994,133 @@ const TeacherDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* TAB 12: CALENDAR PLANNER */}
+      {activeTab === 'CALENDAR' && (() => {
+        const isDateValid = (() => {
+          if (!collegeConfig || !collegeConfig.semesterStart || !collegeConfig.semesterEnd) return true;
+          const target = new Date(plannerDate);
+          target.setUTCHours(0, 0, 0, 0);
+          const start = new Date(collegeConfig.semesterStart);
+          start.setUTCHours(0, 0, 0, 0);
+          const end = new Date(collegeConfig.semesterEnd);
+          end.setUTCHours(23, 59, 59, 999);
+          return target >= start && target <= end;
+        })();
+
+        const weekDaysName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayOfWeekVal = new Date(plannerDate).getDay();
+        const clickedDayName = weekDaysName[dayOfWeekVal];
+        
+        // Match weekday to timetable (1 = Mon, ..., 5 = Fri)
+        const scheduledLectures = timetable.filter(s => s.dayOfWeek === dayOfWeekVal);
+        const todayString = new Date().toISOString().split('T')[0];
+        const isFutureDate = plannerDate > todayString;
+
+        return (
+          <div className="dashboard-grid">
+            <div className="card col-span-5">
+              <h3>Academic Calendar Tracker</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+                Select a calendar date to track scheduled classes, timeframe validity, and your logged attendance sheets.
+              </p>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="planDate">Choose Date</label>
+                <input 
+                  id="planDate" 
+                  type="date" 
+                  className="form-input" 
+                  value={plannerDate} 
+                  onChange={(e) => setPlannerDate(e.target.value)} 
+                />
+              </div>
+
+              {/* Semester Validity Box */}
+              <div style={{ marginTop: '20px' }}>
+                {isDateValid ? (
+                  <div style={{ padding: '16px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '10px', color: 'var(--color-present)' }}>
+                    <div style={{ fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <CheckCircle size={18} /> Active Semester Timeline
+                    </div>
+                    <div style={{ fontSize: '0.8rem', marginTop: '4px', opacity: 0.9 }}>
+                      This date is within the registered term dates: <strong>{new Date(collegeConfig?.semesterStart).toLocaleDateString()}</strong> to <strong>{new Date(collegeConfig?.semesterEnd).toLocaleDateString()}</strong>.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '10px', color: 'var(--color-absent)' }}>
+                    <div style={{ fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <AlertTriangle size={18} /> Outside Semester Timeline
+                    </div>
+                    <div style={{ fontSize: '0.8rem', marginTop: '4px', opacity: 0.9 }}>
+                      Warning: Selected date falls outside academic term limits: <strong>{collegeConfig ? new Date(collegeConfig.semesterStart).toLocaleDateString() : 'N/A'}</strong> to <strong>{collegeConfig ? new Date(collegeConfig.semesterEnd).toLocaleDateString() : 'N/A'}</strong>.
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="card col-span-7">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3>Schedule & Submissions for {clickedDayName}</h3>
+                {isFutureDate && <span className="badge badge-pending">Future Date</span>}
+              </div>
+
+              {loadingDateAtt ? (
+                <p>Loading session logs...</p>
+              ) : scheduledLectures.length === 0 ? (
+                <div style={{ padding: '40px', border: '1px dashed var(--glass-border)', borderRadius: '12px', textAlign: 'center' }}>
+                  <p style={{ color: 'var(--text-muted)' }}>No timetable lectures scheduled for {clickedDayName}s.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {scheduledLectures.map((slot) => {
+                    // Match attendance status from response
+                    const isMarked = dateAttendance.some(r => r.subjectId === slot.subjectId);
+                    
+                    let statusLabel = 'Not Marked / Pending';
+                    let statusBadgeClass = 'absent';
+
+                    if (isFutureDate) {
+                      statusLabel = 'Scheduled (Future Slot)';
+                      statusBadgeClass = 'pending';
+                    } else if (isMarked) {
+                      statusLabel = 'Attendance Submitted';
+                      statusBadgeClass = 'present';
+                    }
+
+                    return (
+                      <div key={slot.id} style={{
+                        padding: '16px',
+                        borderRadius: '12px',
+                        background: 'rgba(255,255,255,0.01)',
+                        border: '1px solid var(--glass-border)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                            {slot.startTime} - {slot.endTime} | Room: {slot.room}
+                          </span>
+                          <h4 style={{ fontWeight: '600', marginTop: '4px' }}>{slot.subject.name} ({slot.subject.code})</h4>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            Class Group: {slot.class?.name || 'Unassigned'}
+                          </p>
+                        </div>
+
+                        <span className={`badge badge-${statusBadgeClass}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

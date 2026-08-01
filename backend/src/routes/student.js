@@ -7,6 +7,33 @@ const router = express.Router();
 // All routes here require STUDENT role
 router.use(authenticate, authorize('STUDENT'));
 
+// GET student's attendance records on a specific date
+router.get('/attendance-by-date', async (req, res) => {
+  const { date } = req.query;
+  if (!date) return res.status(400).json({ message: 'Date parameter is required.' });
+
+  try {
+    const parsedDate = new Date(date);
+    parsedDate.setUTCHours(0, 0, 0, 0);
+
+    const student = await prisma.student.findUnique({
+      where: { userId: req.user.userId }
+    });
+    if (!student) return res.status(404).json({ message: 'Student profile not found.' });
+
+    const records = await prisma.attendance.findMany({
+      where: {
+        studentId: student.id,
+        date: parsedDate,
+      },
+      include: { subject: { select: { name: true, code: true } } }
+    });
+    res.json(records);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching date attendance.', error: error.message });
+  }
+});
+
 // Get student overall and subject-wise attendance statistics
 router.get('/attendance', async (req, res) => {
   try {
