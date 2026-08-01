@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useToast } from '../components/Toast';
 import { Settings, Plus, Users, BookOpen, Layers, History, Calendar, CreditCard, Landmark, Trash2, Clock, ShieldAlert } from 'lucide-react';
@@ -6,7 +7,11 @@ import { Settings, Plus, Users, BookOpen, Layers, History, Calendar, CreditCard,
 const AdminDashboard = () => {
   const { showToast } = useToast();
   
-  const [activeTab, setActiveTab] = useState('STATS');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab')?.toUpperCase() || 'STATS';
+  const setActiveTab = (tab) => {
+    setSearchParams({ tab: tab.toLowerCase() });
+  };
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeDirectory, setActiveDirectory] = useState('CLASSES');
@@ -38,6 +43,7 @@ const AdminDashboard = () => {
   const [subjCode, setSubjCode] = useState('');
   const [subjSem, setSubjSem] = useState(1);
   const [subjTeacherId, setSubjTeacherId] = useState('');
+  const [subjType, setSubjType] = useState('THEORY');
   const [creatingSubject, setCreatingSubject] = useState(false);
 
   // Create Exam fields
@@ -70,6 +76,9 @@ const AdminDashboard = () => {
   const [ttStartTime, setTtStartTime] = useState('');
   const [ttEndTime, setTtEndTime] = useState('');
   const [ttRoom, setTtRoom] = useState('');
+  const [ttDuration, setTtDuration] = useState('2');
+  const [classFilterSem, setClassFilterSem] = useState('ALL');
+  const [subjFilterSem, setSubjFilterSem] = useState('ALL');
   const [creatingTimetable, setCreatingTimetable] = useState(false);
 
   useEffect(() => {
@@ -95,6 +104,9 @@ const AdminDashboard = () => {
       if (subjectsRes.data.length > 0) {
         setExamSubjId(subjectsRes.data[0].id);
         setTtSubjectId(subjectsRes.data[0].id);
+        // Default duration based on type of first subject
+        const defaultDuration = subjectsRes.data[0].type === 'LAB' ? '3' : '2';
+        setTtDuration(defaultDuration);
       }
 
       const studentsRes = await axios.get('/api/admin/students');
@@ -193,11 +205,13 @@ const AdminDashboard = () => {
         name: subjName,
         code: subjCode,
         semester: parseInt(subjSem),
+        type: subjType,
         teacherId: subjTeacherId,
       });
       showToast('New subject added.', 'success');
       setSubjName('');
       setSubjCode('');
+      setSubjType('THEORY');
       fetchAdminData();
     } catch (err) {
       showToast('Failed to create subject.', 'error');
@@ -322,6 +336,26 @@ const AdminDashboard = () => {
     }
   };
 
+  const autoCalcEndTime = (startTimeVal, durationHours) => {
+    if (!startTimeVal) return;
+    const [hours, minutes] = startTimeVal.split(':').map(Number);
+    const endHours = (hours + parseInt(durationHours)) % 24;
+    const endHoursFormatted = String(endHours).padStart(2, '0');
+    const endMinutesFormatted = String(minutes).padStart(2, '0');
+    setTtEndTime(`${endHoursFormatted}:${endMinutesFormatted}`);
+  };
+
+  const handleTtSubjectChange = (e) => {
+    const subId = e.target.value;
+    setTtSubjectId(subId);
+    const selectedSub = subjects.find(s => s.id === subId);
+    if (selectedSub) {
+      const defaultDuration = selectedSub.type === 'LAB' ? '3' : '2';
+      setTtDuration(defaultDuration);
+      autoCalcEndTime(ttStartTime, defaultDuration);
+    }
+  };
+
   const handleCreateTimetable = async (e) => {
     e.preventDefault();
     if (!ttClassId || !ttSubjectId || !ttDayOfWeek || !ttStartTime || !ttEndTime || !ttRoom) {
@@ -379,7 +413,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ padding: '0px' }}>
       <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <Settings size={28} style={{ color: 'var(--accent-primary)' }} />
         Registrar Control Panel
@@ -388,18 +422,7 @@ const AdminDashboard = () => {
         System-wide database management and logs.
       </p>
 
-      {/* Tabs Selector */}
-      <div className="tabs-header">
-        <button onClick={() => setActiveTab('STATS')} className={`tab-btn ${activeTab === 'STATS' ? 'active' : ''}`}><Layers size={16} /> Overview Stats</button>
-        <button onClick={() => setActiveTab('CLASSES_COURSES')} className={`tab-btn ${activeTab === 'CLASSES_COURSES' ? 'active' : ''}`}><BookOpen size={16} /> Course & Classes</button>
-        <button onClick={() => setActiveTab('TIMETABLE')} className={`tab-btn ${activeTab === 'TIMETABLE' ? 'active' : ''}`}><Clock size={16} /> Timetables</button>
-        <button onClick={() => setActiveTab('EXAMS')} className={`tab-btn ${activeTab === 'EXAMS' ? 'active' : ''}`}><Calendar size={16} /> Exams Planner</button>
-        <button onClick={() => setActiveTab('HOLIDAYS')} className={`tab-btn ${activeTab === 'HOLIDAYS' ? 'active' : ''}`}><Calendar size={16} /> Holiday Recess</button>
-        <button onClick={() => setActiveTab('FEES')} className={`tab-btn ${activeTab === 'FEES' ? 'active' : ''}`}><CreditCard size={16} /> Fees Dues</button>
-        <button onClick={() => setActiveTab('BRANDING')} className={`tab-btn ${activeTab === 'BRANDING' ? 'active' : ''}`}><Landmark size={16} /> Brand Settings</button>
-      </div>
-
-      {/* TAB 1: OVERVIEW STATS */}
+      {/* TAB 1: OVERVIEW STATS (DASHBOARD) */}
       {activeTab === 'STATS' && (
         <div className="dashboard-grid">
           {/* Clickable metric cards */}
@@ -518,7 +541,6 @@ const AdminDashboard = () => {
             )}
 
             {activeDirectory === 'DEPARTMENTS' && (() => {
-              // Extract unique departments and calculate metrics
               const deptSummary = {};
               classes.forEach(c => {
                 if (!deptSummary[c.department]) {
@@ -528,9 +550,7 @@ const AdminDashboard = () => {
                 deptSummary[c.department].totalStudents += (c._count?.students ?? 0);
                 deptSummary[c.department].classNames.push(`${c.name} (Sem ${c.semester})`);
               });
-
               const deptNames = Object.keys(deptSummary);
-
               return (
                 <>
                   <h3 style={{ marginBottom: '16px' }}>Departments Directory ({deptNames.length} Departments)</h3>
@@ -578,6 +598,7 @@ const AdminDashboard = () => {
                         <tr>
                           <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Name</th>
                           <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Code</th>
+                          <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Type</th>
                           <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester</th>
                           <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Assigned Faculty</th>
                         </tr>
@@ -587,6 +608,11 @@ const AdminDashboard = () => {
                           <tr key={sub.id} className="attendance-row">
                             <td className="attendance-cell" style={{ fontWeight: '600' }}>{sub.name}</td>
                             <td className="attendance-cell" style={{ fontWeight: '600', color: 'var(--accent-secondary)' }}>{sub.code}</td>
+                            <td className="attendance-cell" style={{ textAlign: 'center' }}>
+                              <span className={`badge badge-${sub.type?.toLowerCase() === 'lab' ? 'absent' : 'present'}`} style={{ textTransform: 'capitalize' }}>
+                                {sub.type?.toLowerCase() || 'Theory'}
+                              </span>
+                            </td>
                             <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '700' }}>Sem {sub.semester}</td>
                             <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '600' }}>{sub.teacher?.user?.name || 'N/A'}</td>
                           </tr>
@@ -679,6 +705,7 @@ const AdminDashboard = () => {
                           <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Day</th>
                           <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Time Slot</th>
                           <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Course Subject</th>
+                          <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Type</th>
                           <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Class Group</th>
                           <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Room</th>
                           <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Faculty</th>
@@ -695,6 +722,11 @@ const AdminDashboard = () => {
                             </td>
                             <td className="attendance-cell" style={{ fontWeight: '600' }}>
                               {slot.subject.name} ({slot.subject.code})
+                            </td>
+                            <td className="attendance-cell" style={{ textAlign: 'center' }}>
+                              <span className={`badge badge-${slot.subject?.type?.toLowerCase() === 'lab' ? 'absent' : 'present'}`} style={{ textTransform: 'capitalize', fontSize: '0.7rem' }}>
+                                {slot.subject?.type?.toLowerCase() || 'Theory'}
+                              </span>
                             </td>
                             <td className="attendance-cell" style={{ color: 'var(--text-secondary)' }}>
                               {slot.class.name}
@@ -752,11 +784,11 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 2: COURSE & CLASSES */}
-      {activeTab === 'CLASSES_COURSES' && (
+      {/* TAB 2: CLASSES (FILTERABLE SEMESTER-WISE) */}
+      {activeTab === 'CLASSES' && (
         <div className="dashboard-grid">
           {/* Create Class */}
-          <div className="card col-span-6">
+          <div className="card col-span-5">
             <h3>Add Class Group</h3>
             <form onSubmit={handleCreateClass}>
               <div className="form-group">
@@ -777,8 +809,110 @@ const AdminDashboard = () => {
             </form>
           </div>
 
+          {/* Classes Directory list */}
+          <div className="card col-span-7">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <h3>Classes Directory</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Semester:</span>
+                <select 
+                  className="form-select" 
+                  value={classFilterSem} 
+                  onChange={(e) => setClassFilterSem(e.target.value)}
+                  style={{ width: '130px', padding: '6px 12px', fontSize: '0.85rem' }}
+                >
+                  <option value="ALL">All Semesters</option>
+                  {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>Semester {n}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {(() => {
+              const filteredClasses = classFilterSem === 'ALL' 
+                ? classes 
+                : classes.filter(c => c.semester === parseInt(classFilterSem));
+
+              return filteredClasses.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No class groups found matching selection.</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="attendance-list">
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Class Name</th>
+                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Department</th>
+                        <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester</th>
+                        <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Enrolled Students</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredClasses.map((c) => (
+                        <tr key={c.id} className="attendance-row">
+                          <td className="attendance-cell" style={{ fontWeight: '600' }}>{c.name}</td>
+                          <td className="attendance-cell" style={{ color: 'var(--text-secondary)' }}>{c.department}</td>
+                          <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '700', color: 'var(--accent-secondary)' }}>Sem {c.semester}</td>
+                          <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '600' }}>{c._count?.students ?? 0} Students</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Departments list */}
+          <div className="card col-span-12" style={{ marginTop: '16px' }}>
+            <h3 style={{ marginBottom: '16px' }}>Departments Directory</h3>
+            {(() => {
+              const deptSummary = {};
+              classes.forEach(c => {
+                if (!deptSummary[c.department]) {
+                  deptSummary[c.department] = { classesCount: 0, totalStudents: 0, classNames: [] };
+                }
+                deptSummary[c.department].classesCount += 1;
+                deptSummary[c.department].totalStudents += (c._count?.students ?? 0);
+                deptSummary[c.department].classNames.push(`${c.name} (Sem ${c.semester})`);
+              });
+              const deptNames = Object.keys(deptSummary);
+              return deptNames.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No departments found.</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="attendance-list">
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Department Name</th>
+                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Associated Class Groups</th>
+                        <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Total Classes</th>
+                        <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Total Students</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deptNames.map((deptName) => (
+                        <tr key={deptName} className="attendance-row">
+                          <td className="attendance-cell" style={{ fontWeight: '600', color: 'var(--color-present)' }}>{deptName}</td>
+                          <td className="attendance-cell" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                            {deptSummary[deptName].classNames.join(', ')}
+                          </td>
+                          <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '600' }}>{deptSummary[deptName].classesCount} Classes</td>
+                          <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '700' }}>{deptSummary[deptName].totalStudents} Students</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: COURSES (FILTERABLE SEMESTER-WISE & THEORY/LAB TYPES) */}
+      {activeTab === 'COURSES' && (
+        <div className="dashboard-grid">
           {/* Create Subject */}
-          <div className="card col-span-6">
+          <div className="card col-span-5">
             <h3>Add Course Subject</h3>
             <form onSubmit={handleCreateSubject}>
               <div className="form-group">
@@ -788,6 +922,13 @@ const AdminDashboard = () => {
               <div className="form-group">
                 <label className="form-label" htmlFor="subjCode">Subject Code</label>
                 <input id="subjCode" type="text" className="form-input" placeholder="e.g. CS401" value={subjCode} onChange={(e) => setSubjCode(e.target.value)} disabled={creatingSubject} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="subjType">Subject Type</label>
+                <select id="subjType" className="form-select" value={subjType} onChange={(e) => setSubjType(e.target.value)}>
+                  <option value="THEORY">Theory Lecture</option>
+                  <option value="LAB">Laboratory Practical (Lab)</option>
+                </select>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div className="form-group">
@@ -806,17 +947,75 @@ const AdminDashboard = () => {
               <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Add Subject</button>
             </form>
           </div>
+
+          {/* Subjects list */}
+          <div className="card col-span-7">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <h3>Course Subjects Directory</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Semester:</span>
+                <select 
+                  className="form-select" 
+                  value={subjFilterSem} 
+                  onChange={(e) => setSubjFilterSem(e.target.value)}
+                  style={{ width: '130px', padding: '6px 12px', fontSize: '0.85rem' }}
+                >
+                  <option value="ALL">All Semesters</option>
+                  {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>Semester {n}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {(() => {
+              const filteredSubjects = subjFilterSem === 'ALL' 
+                ? subjects 
+                : subjects.filter(s => s.semester === parseInt(subjFilterSem));
+
+              return filteredSubjects.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No subjects found matching selection.</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="attendance-list">
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Name</th>
+                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Code</th>
+                        <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Type</th>
+                        <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester</th>
+                        <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Faculty</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredSubjects.map((sub) => (
+                        <tr key={sub.id} className="attendance-row">
+                          <td className="attendance-cell" style={{ fontWeight: '600' }}>{sub.name}</td>
+                          <td className="attendance-cell" style={{ fontWeight: '600', color: 'var(--accent-secondary)' }}>{sub.code}</td>
+                          <td className="attendance-cell" style={{ textAlign: 'center' }}>
+                            <span className={`badge badge-${sub.type?.toLowerCase() === 'lab' ? 'absent' : 'present'}`} style={{ textTransform: 'capitalize' }}>
+                              {sub.type?.toLowerCase() || 'Theory'}
+                            </span>
+                          </td>
+                          <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '700' }}>Sem {sub.semester}</td>
+                          <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '600' }}>{sub.teacher?.user?.name || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       )}
 
-      {/* TAB 3: TIMETABLE slots scheduler */}
+      {/* TAB 4: TIMETABLE (WITH THEORY/LAB AUTO-DURATION CALCS) */}
       {activeTab === 'TIMETABLE' && (
         <div className="dashboard-grid">
           {/* Link class & subject */}
           <div className="card col-span-5">
             <h3>Assign Subject to Class</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>
-              Create weekly lecture slots. This links the subject teacher to the enrolled students of that class group.
+              Create weekly lecture slots. Lab subjects default to 3 hours, and Theory subjects default to 2 hours (double slots).
             </p>
             <form onSubmit={handleCreateTimetable}>
               <div className="form-group">
@@ -825,12 +1024,31 @@ const AdminDashboard = () => {
                   {classes.map(c => <option key={c.id} value={c.id}>{c.name} ({c.department}) - Sem {c.semester}</option>)}
                 </select>
               </div>
+              
               <div className="form-group">
                 <label className="form-label" htmlFor="ttSubject">Select Course Subject</label>
-                <select id="ttSubject" className="form-select" value={ttSubjectId} onChange={(e) => setTtSubjectId(e.target.value)}>
-                  {subjects.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code}) - Sem {s.semester}</option>)}
+                <select id="ttSubject" className="form-select" value={ttSubjectId} onChange={handleTtSubjectChange}>
+                  {subjects.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code}) [{s.type}] - Sem {s.semester}</option>)}
                 </select>
               </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="ttDuration">Duration (Hours)</label>
+                <select 
+                  id="ttDuration" 
+                  className="form-select" 
+                  value={ttDuration} 
+                  onChange={(e) => {
+                    setTtDuration(e.target.value);
+                    autoCalcEndTime(ttStartTime, e.target.value);
+                  }}
+                >
+                  <option value="1">1 Hour (Single hour)</option>
+                  <option value="2">2 Hours (Theory Standard / Double hour)</option>
+                  <option value="3">3 Hours (Lab Standard Practical)</option>
+                </select>
+              </div>
+
               <div className="form-group">
                 <label className="form-label" htmlFor="ttDay">Lecture Day</label>
                 <select id="ttDay" className="form-select" value={ttDayOfWeek} onChange={(e) => setTtDayOfWeek(e.target.value)}>
@@ -841,20 +1059,39 @@ const AdminDashboard = () => {
                   <option value={5}>Friday</option>
                 </select>
               </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
                   <label className="form-label" htmlFor="ttStart">Start Time</label>
-                  <input id="ttStart" type="time" className="form-input" value={ttStartTime} onChange={(e) => setTtStartTime(e.target.value)} />
+                  <input 
+                    id="ttStart" 
+                    type="time" 
+                    className="form-input" 
+                    value={ttStartTime} 
+                    onChange={(e) => {
+                      setTtStartTime(e.target.value);
+                      autoCalcEndTime(e.target.value, ttDuration);
+                    }} 
+                  />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" htmlFor="ttEnd">End Time</label>
-                  <input id="ttEnd" type="time" className="form-input" value={ttEndTime} onChange={(e) => setTtEndTime(e.target.value)} />
+                  <label className="form-label" htmlFor="ttEnd">End Time (Auto)</label>
+                  <input 
+                    id="ttEnd" 
+                    type="time" 
+                    className="form-input" 
+                    value={ttEndTime} 
+                    disabled 
+                    style={{ opacity: 0.7, cursor: 'not-allowed' }} 
+                  />
                 </div>
               </div>
+
               <div className="form-group">
                 <label className="form-label" htmlFor="ttRoom">Room / Lecture Hall</label>
                 <input id="ttRoom" type="text" className="form-input" placeholder="e.g. Room 402, Block C" value={ttRoom} onChange={(e) => setTtRoom(e.target.value)} />
               </div>
+              
               <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={creatingTimetable}>Create Lecture Slot</button>
             </form>
           </div>
@@ -862,7 +1099,7 @@ const AdminDashboard = () => {
           {/* List of links */}
           <div className="card col-span-7">
             <h3>Timetable Matrix List</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '520px', overflowY: 'auto' }}>
               {timetable.length === 0 ? (
                 <div style={{ padding: '24px', textAlign: 'center', border: '1px dashed var(--glass-border)', borderRadius: '12px' }}>
                   <p style={{ color: 'var(--text-muted)' }}>No timetable connections scheduled. Please assign a subject above.</p>
@@ -871,15 +1108,20 @@ const AdminDashboard = () => {
                 timetable.map((slot) => (
                   <div key={slot.id} style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <span style={{ fontSize: '0.75rem', background: 'var(--accent-secondary-glow)', color: 'var(--accent-secondary)', padding: '2px 8px', borderRadius: '4px', fontWeight: '700' }}>
-                        {getDayName(slot.dayOfWeek)}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '0.75rem', background: 'var(--accent-secondary-glow)', color: 'var(--accent-secondary)', padding: '2px 8px', borderRadius: '4px', fontWeight: '700' }}>
+                          {getDayName(slot.dayOfWeek)}
+                        </span>
+                        <span className={`badge badge-${slot.subject?.type?.toLowerCase() === 'lab' ? 'absent' : 'present'}`} style={{ textTransform: 'capitalize', fontSize: '0.7rem' }}>
+                          {slot.subject?.type?.toLowerCase() || 'Theory'}
+                        </span>
+                      </div>
                       <h4 style={{ fontWeight: '600', marginTop: '6px' }}>{slot.subject.name} ({slot.subject.code})</h4>
                       <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                         Class: <strong>{slot.class.name}</strong> | Room: <strong>{slot.room}</strong>
                       </p>
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                        Timing: <strong>{slot.startTime} - {slot.endTime}</strong> | Faculty: {slot.subject.teacher.user.name}
+                        Timing: <strong>{slot.startTime} - {slot.endTime}</strong> | Faculty: {slot.subject.teacher?.user?.name || 'N/A'}
                       </p>
                     </div>
                     <button onClick={() => handleDeleteTimetable(slot.id)} className="btn btn-secondary btn-sm" style={{ padding: '8px', color: 'var(--color-absent)' }} title="Remove Slot">
@@ -893,7 +1135,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 4: EXAMS PLANNER */}
+      {/* TAB 5: EXAMS PLANNER */}
       {activeTab === 'EXAMS' && (
         <div className="dashboard-grid">
           {/* Schedule Exam */}
@@ -963,7 +1205,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 5: HOLIDAYS RECESS */}
+      {/* TAB 6: HOLIDAYS RECESS */}
       {activeTab === 'HOLIDAYS' && (
         <div className="dashboard-grid">
           {/* Declare Holiday */}
@@ -1019,7 +1261,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 6: FEES DUES */}
+      {/* TAB 7: FEES DUES */}
       {activeTab === 'FEES' && (
         <div className="dashboard-grid">
           {/* Assign Fee Invoice */}
@@ -1100,7 +1342,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 7: BRANDING */}
+      {/* TAB 8: BRANDING */}
       {activeTab === 'BRANDING' && (
         <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
           <h3>College Specification Profile</h3>

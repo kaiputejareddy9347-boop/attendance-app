@@ -25,6 +25,11 @@ enum LeaveStatus {
   REJECTED
 }
 
+enum SubjectType {
+  THEORY
+  LAB
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -73,6 +78,7 @@ model Subject {
   name       String
   code       String   @unique
   semester   Int        @default(1)
+  type       SubjectType @default(THEORY)
   teacherId  String
   teacher    Teacher  @relation(fields: [teacherId], references: [id])
   attendance Attendance[]

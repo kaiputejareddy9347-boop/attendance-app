@@ -91,14 +91,20 @@ router.get('/subjects', async (req, res) => {
 
 // POST create subject
 router.post('/subjects', async (req, res) => {
-  const { name, code, teacherId } = req.body;
+  const { name, code, semester, type, teacherId } = req.body;
   if (!name || !code || !teacherId) {
     return res.status(400).json({ message: 'Name, code, and teacherId are required.' });
   }
 
   try {
     const newSubject = await prisma.subject.create({
-      data: { name, code, teacherId },
+      data: {
+        name,
+        code,
+        semester: semester ? parseInt(semester) : 1,
+        type: type || 'THEORY',
+        teacherId,
+      },
     });
     res.status(201).json(newSubject);
   } catch (error) {

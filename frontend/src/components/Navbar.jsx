@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar } from 'lucide-react';
+import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard } from 'lucide-react';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -19,10 +19,10 @@ const Navbar = () => {
     }
   }, [user]);
 
-  // Close sidebar on path change
+  // Close sidebar on path or search query change
   useEffect(() => {
     setSidebarOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   if (!user) return null;
 
@@ -31,11 +31,18 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const isActive = (path) => location.pathname === path;
-  
-  const collegeDisplayName = collegeConfig 
-    ? `${collegeConfig.name} (${collegeConfig.code})` 
-    : 'AttendancePortal';
+  const isActive = (path, tab = null) => {
+    if (tab) {
+      const searchParams = new URLSearchParams(location.search);
+      const currentTab = searchParams.get('tab')?.toLowerCase();
+      // If path matches and tab matches (or default to stats if no query param)
+      if (tab === 'stats' && !currentTab) {
+        return location.pathname === path;
+      }
+      return location.pathname === path && currentTab === tab.toLowerCase();
+    }
+    return location.pathname === path;
+  };
 
   return (
     <>
@@ -138,9 +145,37 @@ const Navbar = () => {
 
             {user.role === 'ADMIN' && (
               <>
-                <Link to="/admin/dashboard" className={`sidebar-link ${isActive('/admin/dashboard') ? 'active' : ''}`}>
+                <Link to="/admin/dashboard?tab=stats" className={`sidebar-link ${isActive('/admin/dashboard', 'stats') ? 'active' : ''}`}>
+                  <LayoutDashboard size={18} />
+                  <span>Dashboard</span>
+                </Link>
+                <Link to="/admin/dashboard?tab=classes" className={`sidebar-link ${isActive('/admin/dashboard', 'classes') ? 'active' : ''}`}>
+                  <Layers size={18} />
+                  <span>Classes</span>
+                </Link>
+                <Link to="/admin/dashboard?tab=courses" className={`sidebar-link ${isActive('/admin/dashboard', 'courses') ? 'active' : ''}`}>
+                  <BookOpen size={18} />
+                  <span>Courses</span>
+                </Link>
+                <Link to="/admin/dashboard?tab=timetable" className={`sidebar-link ${isActive('/admin/dashboard', 'timetable') ? 'active' : ''}`}>
+                  <Clock size={18} />
+                  <span>Timetables</span>
+                </Link>
+                <Link to="/admin/dashboard?tab=exams" className={`sidebar-link ${isActive('/admin/dashboard', 'exams') ? 'active' : ''}`}>
+                  <Calendar size={18} />
+                  <span>Exams Planner</span>
+                </Link>
+                <Link to="/admin/dashboard?tab=holidays" className={`sidebar-link ${isActive('/admin/dashboard', 'holidays') ? 'active' : ''}`}>
+                  <Calendar size={18} />
+                  <span>Holiday Recess</span>
+                </Link>
+                <Link to="/admin/dashboard?tab=fees" className={`sidebar-link ${isActive('/admin/dashboard', 'fees') ? 'active' : ''}`}>
+                  <CreditCard size={18} />
+                  <span>Fee Dues</span>
+                </Link>
+                <Link to="/admin/dashboard?tab=branding" className={`sidebar-link ${isActive('/admin/dashboard', 'branding') ? 'active' : ''}`}>
                   <Settings size={18} />
-                  <span>Control Panel</span>
+                  <span>Brand Settings</span>
                 </Link>
               </>
             )}
