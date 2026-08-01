@@ -112,6 +112,41 @@ router.post('/subjects', async (req, res) => {
   }
 });
 
+// PUT update subject
+router.put('/subjects/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, code, semester, type, teacherId } = req.body;
+  if (!name || !code || !teacherId) {
+    return res.status(400).json({ message: 'Name, code, and teacherId are required.' });
+  }
+
+  try {
+    const updatedSubject = await prisma.subject.update({
+      where: { id },
+      data: {
+        name,
+        code,
+        semester: semester ? parseInt(semester) : 1,
+        type: type || 'THEORY',
+        teacherId,
+      },
+    });
+    res.json(updatedSubject);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating subject.', error: error.message });
+  }
+});
+
+// DELETE subject
+router.delete('/subjects/:id', async (req, res) => {
+  try {
+    await prisma.subject.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Subject deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting subject.', error: error.message });
+  }
+});
+
 // GET all students
 router.get('/students', async (req, res) => {
   try {
@@ -163,6 +198,32 @@ router.post('/timetable', async (req, res) => {
     res.status(201).json(newSlot);
   } catch (error) {
     res.status(500).json({ message: 'Error creating timetable slot.', error: error.message });
+  }
+});
+
+// PUT update timetable slot
+router.put('/timetable/:id', async (req, res) => {
+  const { id } = req.params;
+  const { classId, subjectId, dayOfWeek, startTime, endTime, room } = req.body;
+  if (!classId || !subjectId || !dayOfWeek || !startTime || !endTime || !room) {
+    return res.status(400).json({ message: 'All timetable slot details are required.' });
+  }
+
+  try {
+    const updatedSlot = await prisma.timetableSlot.update({
+      where: { id },
+      data: {
+        classId,
+        subjectId,
+        dayOfWeek: parseInt(dayOfWeek),
+        startTime,
+        endTime,
+        room,
+      },
+    });
+    res.json(updatedSlot);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating timetable slot.', error: error.message });
   }
 });
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useToast } from '../components/Toast';
-import { Settings, Plus, Users, BookOpen, Layers, History, Calendar, CreditCard, Landmark, Trash2, Clock, ShieldAlert } from 'lucide-react';
+import { Settings, Plus, Users, BookOpen, Layers, History, Calendar, CreditCard, Landmark, Trash2, Clock, Edit2 } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { showToast } = useToast();
@@ -38,13 +38,14 @@ const AdminDashboard = () => {
   const [classSem, setClassSem] = useState(1);
   const [creatingClass, setCreatingClass] = useState(false);
 
-  // Create subject form fields
+  // Create/Edit subject form fields
   const [subjName, setSubjName] = useState('');
   const [subjCode, setSubjCode] = useState('');
   const [subjSem, setSubjSem] = useState(1);
   const [subjTeacherId, setSubjTeacherId] = useState('');
   const [subjType, setSubjType] = useState('THEORY');
   const [creatingSubject, setCreatingSubject] = useState(false);
+  const [editingSubjectObj, setEditingSubjectObj] = useState(null);
 
   // Create Exam fields
   const [examName, setExamName] = useState('');
@@ -69,7 +70,7 @@ const AdminDashboard = () => {
   const [feeDesc, setFeeDesc] = useState('');
   const [creatingFee, setCreatingFee] = useState(false);
 
-  // Create Timetable Slot fields
+  // Create/Edit Timetable Slot fields
   const [ttClassId, setTtClassId] = useState('');
   const [ttSubjectId, setTtSubjectId] = useState('');
   const [ttDayOfWeek, setTtDayOfWeek] = useState(1);
@@ -80,6 +81,7 @@ const AdminDashboard = () => {
   const [classFilterSem, setClassFilterSem] = useState('ALL');
   const [subjFilterSem, setSubjFilterSem] = useState('ALL');
   const [creatingTimetable, setCreatingTimetable] = useState(false);
+  const [editingTimetableSlot, setEditingTimetableSlot] = useState(null);
 
   useEffect(() => {
     fetchAdminData();
@@ -104,7 +106,6 @@ const AdminDashboard = () => {
       if (subjectsRes.data.length > 0) {
         setExamSubjId(subjectsRes.data[0].id);
         setTtSubjectId(subjectsRes.data[0].id);
-        // Default duration based on type of first subject
         const defaultDuration = subjectsRes.data[0].type === 'LAB' ? '3' : '2';
         setTtDuration(defaultDuration);
       }
@@ -192,6 +193,33 @@ const AdminDashboard = () => {
     }
   };
 
+  const startEditSubject = (sub) => {
+    setEditingSubjectObj(sub);
+    setSubjName(sub.name);
+    setSubjCode(sub.code);
+    setSubjSem(sub.semester);
+    setSubjType(sub.type);
+    setSubjTeacherId(sub.teacherId);
+  };
+
+  const cancelEditSubject = () => {
+    setEditingSubjectObj(null);
+    setSubjName('');
+    setSubjCode('');
+    setSubjType('THEORY');
+  };
+
+  const handleDeleteSubject = async (id) => {
+    if (!confirm('Are you sure you want to delete this course subject? This will delete all attendance records and timetable links matching this course.')) return;
+    try {
+      await axios.delete(`/api/admin/subjects/${id}`);
+      showToast('Subject deleted successfully.', 'success');
+      fetchAdminData();
+    } catch (err) {
+      showToast('Could not delete subject.', 'error');
+    }
+  };
+
   const handleCreateSubject = async (e) => {
     e.preventDefault();
     if (!subjName || !subjCode || !subjTeacherId) {
@@ -201,20 +229,32 @@ const AdminDashboard = () => {
 
     setCreatingSubject(true);
     try {
-      await axios.post('/api/admin/subjects', {
-        name: subjName,
-        code: subjCode,
-        semester: parseInt(subjSem),
-        type: subjType,
-        teacherId: subjTeacherId,
-      });
-      showToast('New subject added.', 'success');
+      if (editingSubjectObj) {
+        await axios.put(`/api/admin/subjects/${editingSubjectObj.id}`, {
+          name: subjName,
+          code: subjCode,
+          semester: parseInt(subjSem),
+          type: subjType,
+          teacherId: subjTeacherId,
+        });
+        showToast('Subject updated successfully.', 'success');
+      } else {
+        await axios.post('/api/admin/subjects', {
+          name: subjName,
+          code: subjCode,
+          semester: parseInt(subjSem),
+          type: subjType,
+          teacherId: subjTeacherId,
+        });
+        showToast('New subject added.', 'success');
+      }
       setSubjName('');
       setSubjCode('');
       setSubjType('THEORY');
+      setEditingSubjectObj(null);
       fetchAdminData();
     } catch (err) {
-      showToast('Failed to create subject.', 'error');
+      showToast(editingSubjectObj ? 'Failed to update subject.' : 'Failed to create subject.', 'error');
     } finally {
       setCreatingSubject(false);
     }
@@ -356,6 +396,33 @@ const AdminDashboard = () => {
     }
   };
 
+  const startEditTimetable = (slot) => {
+    setEditingTimetableSlot(slot);
+    setTtClassId(slot.classId);
+    setTtSubjectId(slot.subjectId);
+    setTtDayOfWeek(slot.dayOfWeek);
+    setTtStartTime(slot.startTime);
+    setTtEndTime(slot.endTime);
+    setTtRoom(slot.room);
+
+    // Calculate duration based on start/end times
+    try {
+      const startHours = parseInt(slot.startTime.split(':')[0]);
+      const endHours = parseInt(slot.endTime.split(':')[0]);
+      const duration = (endHours - startHours + 24) % 24;
+      setTtDuration(String(duration || 2));
+    } catch (err) {
+      setTtDuration('2');
+    }
+  };
+
+  const cancelEditTimetable = () => {
+    setEditingTimetableSlot(null);
+    setTtRoom('');
+    setTtStartTime('');
+    setTtEndTime('');
+  };
+
   const handleCreateTimetable = async (e) => {
     e.preventDefault();
     if (!ttClassId || !ttSubjectId || !ttDayOfWeek || !ttStartTime || !ttEndTime || !ttRoom) {
@@ -364,22 +431,35 @@ const AdminDashboard = () => {
     }
     setCreatingTimetable(true);
     try {
-      await axios.post('/api/admin/timetable', {
-        classId: ttClassId,
-        subjectId: ttSubjectId,
-        dayOfWeek: parseInt(ttDayOfWeek),
-        startTime: ttStartTime,
-        endTime: ttEndTime,
-        room: ttRoom,
-      });
-      showToast('Linked subject to class schedule.', 'success');
+      if (editingTimetableSlot) {
+        await axios.put(`/api/admin/timetable/${editingTimetableSlot.id}`, {
+          classId: ttClassId,
+          subjectId: ttSubjectId,
+          dayOfWeek: parseInt(ttDayOfWeek),
+          startTime: ttStartTime,
+          endTime: ttEndTime,
+          room: ttRoom,
+        });
+        showToast('Timetable slot updated successfully.', 'success');
+      } else {
+        await axios.post('/api/admin/timetable', {
+          classId: ttClassId,
+          subjectId: ttSubjectId,
+          dayOfWeek: parseInt(ttDayOfWeek),
+          startTime: ttStartTime,
+          endTime: ttEndTime,
+          room: ttRoom,
+        });
+        showToast('Linked subject to class schedule.', 'success');
+      }
       setTtRoom('');
       setTtStartTime('');
       setTtEndTime('');
+      setEditingTimetableSlot(null);
       fetchAdminData();
     } catch (error) {
       console.error(error);
-      showToast('Failed to link timetable slot.', 'error');
+      showToast(editingTimetableSlot ? 'Failed to update timetable slot.' : 'Failed to link timetable slot.', 'error');
     } finally {
       setCreatingTimetable(false);
     }
@@ -389,7 +469,7 @@ const AdminDashboard = () => {
     if (!confirm('Are you sure you want to remove this timetable class link?')) return;
     try {
       await axios.delete(`/api/admin/timetable/${id}`);
-      showToast('Timetable slot deleted.', 'success');
+      showToast('Timetable slot deleted successfully.', 'success');
       fetchAdminData();
     } catch (error) {
       showToast('Could not delete timetable slot.', 'error');
@@ -425,7 +505,6 @@ const AdminDashboard = () => {
       {/* TAB 1: OVERVIEW STATS (DASHBOARD) */}
       {activeTab === 'STATS' && (
         <div className="dashboard-grid">
-          {/* Clickable metric cards */}
           <div className="col-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '8px' }}>
             <div 
               className="card" 
@@ -908,12 +987,12 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 3: COURSES (FILTERABLE SEMESTER-WISE & THEORY/LAB TYPES) */}
+      {/* TAB 3: COURSES (FILTERABLE SEMESTER-WISE & THEORY/LAB TYPES, EDITABLE) */}
       {activeTab === 'COURSES' && (
         <div className="dashboard-grid">
-          {/* Create Subject */}
+          {/* Create/Edit Subject Form */}
           <div className="card col-span-5">
-            <h3>Add Course Subject</h3>
+            <h3>{editingSubjectObj ? `Edit Subject: ${editingSubjectObj.code}` : 'Add Course Subject'}</h3>
             <form onSubmit={handleCreateSubject}>
               <div className="form-group">
                 <label className="form-label" htmlFor="subjName">Subject Name</label>
@@ -944,7 +1023,17 @@ const AdminDashboard = () => {
                   </select>
                 </div>
               </div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Add Subject</button>
+              
+              <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                  {editingSubjectObj ? 'Update Subject' : 'Add Subject'}
+                </button>
+                {editingSubjectObj && (
+                  <button type="button" onClick={cancelEditSubject} className="btn btn-secondary" style={{ padding: '12px 16px' }}>
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -978,25 +1067,37 @@ const AdminDashboard = () => {
                   <table className="attendance-list">
                     <thead>
                       <tr>
-                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Name</th>
-                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Code</th>
+                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject</th>
                         <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Type</th>
-                        <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester</th>
-                        <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Faculty</th>
+                        <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Sem</th>
+                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Faculty</th>
+                        <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredSubjects.map((sub) => (
                         <tr key={sub.id} className="attendance-row">
-                          <td className="attendance-cell" style={{ fontWeight: '600' }}>{sub.name}</td>
-                          <td className="attendance-cell" style={{ fontWeight: '600', color: 'var(--accent-secondary)' }}>{sub.code}</td>
+                          <td className="attendance-cell">
+                            <div style={{ fontWeight: '600' }}>{sub.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '700' }}>{sub.code}</div>
+                          </td>
                           <td className="attendance-cell" style={{ textAlign: 'center' }}>
                             <span className={`badge badge-${sub.type?.toLowerCase() === 'lab' ? 'absent' : 'present'}`} style={{ textTransform: 'capitalize' }}>
                               {sub.type?.toLowerCase() || 'Theory'}
                             </span>
                           </td>
                           <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '700' }}>Sem {sub.semester}</td>
-                          <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '600' }}>{sub.teacher?.user?.name || 'N/A'}</td>
+                          <td className="attendance-cell" style={{ color: 'var(--text-muted)' }}>{sub.teacher?.user?.name || 'N/A'}</td>
+                          <td className="attendance-cell" style={{ textAlign: 'right' }}>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                              <button onClick={() => startEditSubject(sub)} className="btn btn-secondary btn-sm" style={{ padding: '6px', color: 'var(--accent-secondary)' }} title="Edit Subject">
+                                <Edit2 size={14} />
+                              </button>
+                              <button onClick={() => handleDeleteSubject(sub.id)} className="btn btn-secondary btn-sm" style={{ padding: '6px', color: 'var(--color-absent)' }} title="Delete Subject">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -1008,14 +1109,14 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* TAB 4: TIMETABLE (WITH THEORY/LAB AUTO-DURATION CALCS) */}
+      {/* TAB 4: TIMETABLE (EDITABLE WITH AUTO-DURATION CALCS) */}
       {activeTab === 'TIMETABLE' && (
         <div className="dashboard-grid">
-          {/* Link class & subject */}
+          {/* Link class & subject / Edit form */}
           <div className="card col-span-5">
-            <h3>Assign Subject to Class</h3>
+            <h3>{editingTimetableSlot ? 'Edit Timetable Lecture Slot' : 'Assign Subject to Class'}</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>
-              Create weekly lecture slots. Lab subjects default to 3 hours, and Theory subjects default to 2 hours (double slots).
+              Create or modify weekly lecture slots. Lab subjects default to 3 hours, and Theory subjects default to 2 hours.
             </p>
             <form onSubmit={handleCreateTimetable}>
               <div className="form-group">
@@ -1092,7 +1193,16 @@ const AdminDashboard = () => {
                 <input id="ttRoom" type="text" className="form-input" placeholder="e.g. Room 402, Block C" value={ttRoom} onChange={(e) => setTtRoom(e.target.value)} />
               </div>
               
-              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={creatingTimetable}>Create Lecture Slot</button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={creatingTimetable}>
+                  {editingTimetableSlot ? 'Update Slot' : 'Create Lecture Slot'}
+                </button>
+                {editingTimetableSlot && (
+                  <button type="button" onClick={cancelEditTimetable} className="btn btn-secondary" style={{ padding: '12px 16px' }}>
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -1124,9 +1234,15 @@ const AdminDashboard = () => {
                         Timing: <strong>{slot.startTime} - {slot.endTime}</strong> | Faculty: {slot.subject.teacher?.user?.name || 'N/A'}
                       </p>
                     </div>
-                    <button onClick={() => handleDeleteTimetable(slot.id)} className="btn btn-secondary btn-sm" style={{ padding: '8px', color: 'var(--color-absent)' }} title="Remove Slot">
-                      <Trash2 size={16} />
-                    </button>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <button onClick={() => startEditTimetable(slot)} className="btn btn-secondary btn-sm" style={{ padding: '8px', color: 'var(--accent-secondary)' }} title="Edit Slot">
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={() => handleDeleteTimetable(slot.id)} className="btn btn-secondary btn-sm" style={{ padding: '8px', color: 'var(--color-absent)' }} title="Remove Slot">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
