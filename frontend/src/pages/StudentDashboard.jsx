@@ -205,12 +205,7 @@ const StudentDashboard = () => {
   const breakdown = data?.breakdown || [];
   const studentClass = data?.studentClass || { name: 'N/A', department: 'N/A', semester: 1 };
 
-  // Circle path math
-  const radius = 60;
-  const stroke = 8;
-  const normalizedRadius = radius - stroke * 2;
-  const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (summary.percentage / 100) * circumference;
+
 
   return (
     <div className="app-container" style={{ padding: '0px' }}>
@@ -237,34 +232,22 @@ const StudentDashboard = () => {
             <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
               Overall Attendance
             </h3>
-            <div className="progress-ring-container">
-              <svg height={radius * 2} width={radius * 2}>
-                <circle
-                  stroke="rgba(255,255,255,0.03)"
-                  fill="transparent"
-                  strokeWidth={stroke}
-                  r={normalizedRadius}
-                  cx={radius}
-                  cy={radius}
-                />
-                <circle
-                  stroke={summary.percentage >= 75 ? 'var(--color-present)' : 'var(--color-absent)'}
-                  fill="transparent"
-                  strokeWidth={stroke}
-                  strokeDasharray={circumference + ' ' + circumference}
-                  style={{ strokeDashoffset }}
-                  strokeLinecap="round"
-                  className="progress-ring-circle"
-                  r={normalizedRadius}
-                  cx={radius}
-                  cy={radius}
-                />
-              </svg>
-              <div className="progress-ring-value" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: '2rem', fontWeight: '800', lineHeight: 1 }}>{summary.percentage}%</span>
-                <span style={{ display: 'block', marginTop: '6px', fontSize: '0.75rem', fontWeight: '600', color: summary.percentage >= 75 ? 'var(--color-present)' : 'var(--color-absent)' }}>
-                  {summary.percentage >= 75 ? 'Good Standing' : 'Low Attendance'}
-                </span>
+            <div style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontSize: '3rem', fontWeight: '900', color: '#fff', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                {summary.percentage}%
+              </div>
+              <div style={{ 
+                marginTop: '12px', 
+                padding: '6px 14px', 
+                borderRadius: '20px', 
+                fontSize: '0.75rem', 
+                fontWeight: '700', 
+                textTransform: 'uppercase',
+                background: summary.percentage >= 75 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                border: summary.percentage >= 75 ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)',
+                color: summary.percentage >= 75 ? 'var(--color-present)' : 'var(--color-absent)' 
+              }}>
+                {summary.percentage >= 75 ? 'Good Standing' : 'Low Attendance'}
               </div>
             </div>
 
