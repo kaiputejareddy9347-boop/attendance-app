@@ -271,7 +271,7 @@ const StudentDashboard = () => {
               </div>
             </div>
             <div style={{ marginTop: '16px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Total Term Attendance: <strong>{summary.total}</strong> registered sessions
+              Semester Attendance: <strong>{summary.total}</strong> registered sessions
             </div>
           </div>
 
@@ -308,18 +308,9 @@ const StudentDashboard = () => {
                   </div>
 
                   <div className="subject-stats-row">
-                    <div>
-                      <div className="subject-stat-label">Attended</div>
-                      <div className="subject-stat-val" style={{ color: 'var(--color-present)' }}>{subj.present + subj.late}</div>
-                    </div>
-                    <div>
-                      <div className="subject-stat-label">Absent</div>
-                      <div className="subject-stat-val" style={{ color: 'var(--color-absent)' }}>{subj.absent}</div>
-                    </div>
-                    <div>
-                      <div className="subject-stat-label">Total Sessions</div>
-                      <div className="subject-stat-val">{subj.total}</div>
-                    </div>
+                    <div>Present: <strong>{subj.present}</strong></div>
+                    <div>Late: <strong>{subj.late}</strong></div>
+                    <div>Absent: <strong>{subj.absent}</strong></div>
                   </div>
                 </div>
               ))}
@@ -329,11 +320,8 @@ const StudentDashboard = () => {
           {/* Bunk & Attendance Estimator */}
           <div className="card col-span-12" style={{ marginTop: '24px' }}>
             <h3>Bunk & Attendance Calculator</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              Estimate the impact of skip sessions (bunks) or calculate how many consecutive classes you need to attend to hit your goal.
-            </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
               {/* Skip Estimator */}
               <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
                 <h4 style={{ fontWeight: '700', marginBottom: '12px' }}>Bunk Estimator</h4>
@@ -755,9 +743,6 @@ const StudentDashboard = () => {
             <Landmark size={22} style={{ color: 'var(--accent-primary)' }} />
             College Institution Details
           </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '24px' }}>
-            Institution registration profiles and active academic year configuration.
-          </p>
           
           {collegeConfig ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -901,9 +886,9 @@ const StudentDashboard = () => {
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>
                             {slot.startTime} - {slot.endTime} | Room: {slot.room}
                           </span>
-                          <h4 style={{ fontWeight: '600', marginTop: '4px' }}>{slot.subject.name} ({slot.subject.code})</h4>
+                          <h4 style={{ fontWeight: '600', marginTop: '4px' }}>{slot.subject.name}</h4>
                           <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                            Instructor: {slot.subject.teacher?.user?.name || 'TBA'}
+                            Lecturer: {slot.subject.teacher?.user?.name || 'TBA'}
                           </p>
                         </div>
 
@@ -1020,10 +1005,10 @@ const StudentDashboard = () => {
       )}
       {/* TAB: SETTINGS */}
       {activeTab === 'SETTINGS' && (
-        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
+        <div className="card col-span-12" style={{ maxWidth: '650px', margin: '0 auto' }}>
           <h3>App Settings & Preferences</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
-            {/* Theme selector */}
+            {/* Visual Theme selector */}
             <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
               <h4 style={{ fontWeight: '700', marginBottom: '8px' }}>Visual Theme</h4>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>Customize the color palette of your academic dashboard shell.</p>
@@ -1035,7 +1020,53 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            {/* Notification settings */}
+            {/* Display Density & Typography */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <h4 style={{ fontWeight: '700', marginBottom: '8px' }}>Display Density & Scale</h4>
+              <div className="form-group" style={{ marginBottom: '12px' }}>
+                <label className="form-label">Font Scale & Spacing</label>
+                <select className="form-select" defaultValue="normal" onChange={(e) => showToast(`Font scale updated: ${e.target.value}`, 'success')}>
+                  <option value="compact">Compact (Higher Data Density)</option>
+                  <option value="normal">Normal (Default Balanced)</option>
+                  <option value="large">Large (High Accessibility & Contrast)</option>
+                </select>
+              </div>
+              <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', paddingTop: '8px', borderTop: '1px solid var(--glass-border)' }}>
+                <span style={{ fontSize: '0.85rem' }}>Compact Table Rows</span>
+                <input type="checkbox" onChange={(e) => showToast(e.target.checked ? 'Compact table view enabled!' : 'Compact table view disabled!', 'info')} />
+              </label>
+            </div>
+
+            {/* Live Data Refresh Interval */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <h4 style={{ fontWeight: '700', marginBottom: '8px' }}>Real-time Data Sync</h4>
+              <div className="form-group">
+                <label className="form-label">Background Polling Rate</label>
+                <select className="form-select" defaultValue="15" onChange={(e) => showToast(`Sync rate updated to ${e.target.value}s`, 'success')}>
+                  <option value="15">High Frequency (15 Seconds)</option>
+                  <option value="30">Balanced (30 Seconds)</option>
+                  <option value="60">Low Battery Saver (60 Seconds)</option>
+                  <option value="0">Manual Refresh Only</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Sound & Haptics */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+              <h4 style={{ fontWeight: '700', marginBottom: '12px' }}>Audio & Haptic Feedback</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                  <span style={{ fontSize: '0.85rem' }}>Sound Chime on Attendance Action</span>
+                  <input type="checkbox" defaultChecked onChange={(e) => showToast(e.target.checked ? 'Audio effects enabled!' : 'Audio effects disabled!', 'info')} />
+                </label>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', borderTop: '1px solid var(--glass-border)', paddingTop: '10px' }}>
+                  <span style={{ fontSize: '0.85rem' }}>Mobile Touch Haptic Vibration</span>
+                  <input type="checkbox" defaultChecked onChange={(e) => showToast(e.target.checked ? 'Haptic feedback enabled!' : 'Haptic feedback disabled!', 'info')} />
+                </label>
+              </div>
+            </div>
+
+            {/* Alert Preferences */}
             <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
               <h4 style={{ fontWeight: '700', marginBottom: '12px' }}>Alert Preferences</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1050,7 +1081,7 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            {/* Language settings */}
+            {/* Locale Settings */}
             <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
               <h4 style={{ fontWeight: '700', marginBottom: '8px' }}>Locale Settings</h4>
               <select className="form-select" defaultValue="en" onChange={(e) => showToast(`Locale changed to: ${e.target.value.toUpperCase()}`, 'success')}>
