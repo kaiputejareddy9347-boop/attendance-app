@@ -39,6 +39,7 @@ const TeacherDashboard = () => {
   const [classes, setClasses] = useState([]);
   const [fees, setFees] = useState([]);
   const [history, setHistory] = useState([]);
+  const [collegeConfig, setCollegeConfig] = useState(null);
 
   // Unit PDFs state for assigned subjects
   const [teacherPdfs, setTeacherPdfs] = useState(() => {
