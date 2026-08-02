@@ -42,8 +42,12 @@ const TeacherDashboard = () => {
 
   // Unit PDFs state for assigned subjects
   const [teacherPdfs, setTeacherPdfs] = useState(() => {
-    const saved = localStorage.getItem('college_teacher_pdfs');
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = localStorage.getItem('college_teacher_pdfs');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
   });
 
   const handleAddPdf = (subjectId, subjectCode) => {
@@ -102,9 +106,10 @@ const TeacherDashboard = () => {
     setLoadingDateAtt(true);
     try {
       const res = await axios.get(`/api/teacher/attendance-by-date?date=${targetDate}`);
-      setDateAttendance(res.data);
+      setDateAttendance(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Error fetching date attendance logs', err);
+      setDateAttendance([]);
     } finally {
       setLoadingDateAtt(false);
     }
@@ -114,9 +119,10 @@ const TeacherDashboard = () => {
     setLoadingExams(true);
     try {
       const res = await axios.get('/api/teacher/exams');
-      setExams(res.data);
+      setExams(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Error fetching teacher exams', err);
+      setExams([]);
     } finally {
       setLoadingExams(false);
     }
@@ -126,11 +132,12 @@ const TeacherDashboard = () => {
     setLoadingMarksRoster(true);
     try {
       const res = await axios.get(`/api/teacher/exams/${examId}/marks`);
-      setSelectedExam(res.data.exam);
-      setMarksRoster(res.data.students);
+      setSelectedExam(res.data?.exam || null);
+      setMarksRoster(Array.isArray(res.data?.students) ? res.data.students : []);
     } catch (err) {
       console.error('Error fetching marks roster', err);
       showToast('Failed to load students roster.', 'error');
+      setMarksRoster([]);
     } finally {
       setLoadingMarksRoster(false);
     }
@@ -169,71 +176,80 @@ const TeacherDashboard = () => {
     // 1. Subjects
     try {
       const subRes = await axios.get('/api/teacher/subjects');
-      setSubjects(subRes.data);
-      if (subRes.data.length > 0) {
-        setSelectedSubjectId(subRes.data[0].id);
-        if (subRes.data[0].timetable && subRes.data[0].timetable.length > 0) {
-          fetchClassStudents(subRes.data[0].timetable[0].classId, subRes.data[0].id);
+      const subData = Array.isArray(subRes.data) ? subRes.data : [];
+      setSubjects(subData);
+      if (subData.length > 0) {
+        setSelectedSubjectId(subData[0].id);
+        if (subData[0].timetable && subData[0].timetable.length > 0) {
+          fetchClassStudents(subData[0].timetable[0].classId, subData[0].id);
         }
       }
     } catch (err) {
       console.error('Error fetching teacher subjects', err);
+      setSubjects([]);
     }
 
     // 2. Timetable
     try {
       const ttRes = await axios.get('/api/teacher/timetable');
-      setTimetable(ttRes.data);
+      setTimetable(Array.isArray(ttRes.data) ? ttRes.data : []);
     } catch (err) {
       console.error('Error fetching teacher timetable', err);
+      setTimetable([]);
     }
 
     // 3. Classes
     try {
       const clsRes = await axios.get('/api/teacher/classes');
-      setClasses(clsRes.data);
+      setClasses(Array.isArray(clsRes.data) ? clsRes.data : []);
     } catch (err) {
       console.error('Error fetching teacher classes', err);
+      setClasses([]);
     }
 
     // 4. Fees
     try {
       const feeRes = await axios.get('/api/teacher/fees');
-      setFees(feeRes.data);
+      setFees(Array.isArray(feeRes.data) ? feeRes.data : []);
     } catch (err) {
       console.error('Error fetching teacher fees', err);
+      setFees([]);
     }
 
     // 5. Exams
     try {
       const examRes = await axios.get('/api/teacher/exams');
-      setExams(examRes.data);
+      setExams(Array.isArray(examRes.data) ? examRes.data : []);
     } catch (err) {
       console.error('Error fetching teacher exams', err);
+      setExams([]);
     }
 
     // 6. Holidays
     try {
       const holRes = await axios.get('/api/teacher/holidays');
-      setHolidays(holRes.data);
+      setHolidays(Array.isArray(holRes.data) ? holRes.data : []);
     } catch (err) {
       console.error('Error fetching teacher holidays', err);
+      setHolidays([]);
     }
 
     // 7. History
     try {
       const histRes = await axios.get('/api/teacher/attendance-history');
-      setHistory(histRes.data);
+      setHistory(Array.isArray(histRes.data) ? histRes.data : []);
     } catch (err) {
       console.error('Error fetching teacher history', err);
+      setHistory([]);
     }
 
     // 8. Leaves
     try {
       const leavesRes = await axios.get('/api/teacher/leaves');
-      setLeaves(leavesRes.data);
+      setLeaves(Array.isArray(leavesRes.data) ? leavesRes.data : []);
     } catch (err) {
       console.error('Error fetching teacher leaves', err);
+      setLeaves([]);
     }
 
     // 9. Config
@@ -256,9 +272,10 @@ const TeacherDashboard = () => {
     setLoadingNotices(true);
     try {
       const res = await axios.get('/api/notices');
-      setNotices(res.data);
+      setNotices(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Error fetching notices', err);
+      setNotices([]);
     } finally {
       setLoadingNotices(false);
     }
@@ -301,19 +318,25 @@ const TeacherDashboard = () => {
       const targetDate = dateParam || date;
       const res = await axios.get(`/api/teacher/students-by-class/${classId}?date=${targetDate}&subjectId=${subjectId}`);
       
-      const { students: studentList, attendanceMarked, markedAt, studentStatusMap } = res.data;
-      setStudents(studentList);
+      const { students: studentList, attendanceMarked, markedAt, studentStatusMap } = res.data || {};
+      const safeStudents = Array.isArray(studentList) ? studentList : [];
+      const statusMap = studentStatusMap || {};
+      
+      setStudents(safeStudents);
 
       const defaultRecords = {};
-      studentList.forEach((student) => {
-        defaultRecords[student.id] = studentStatusMap[student.id] || 'PRESENT';
+      safeStudents.forEach((student) => {
+        if (student && student.id) {
+          defaultRecords[student.id] = statusMap[student.id] || 'PRESENT';
+        }
       });
       setAttendanceRecords(defaultRecords);
-      setIsAttendanceMarked(attendanceMarked);
-      setAttendanceMarkedAt(markedAt);
+      setIsAttendanceMarked(!!attendanceMarked);
+      setAttendanceMarkedAt(markedAt || null);
     } catch (err) {
       console.error(err);
       showToast('Error loading student roster.', 'error');
+      setStudents([]);
     } finally {
       setLoadingStudents(false);
     }
