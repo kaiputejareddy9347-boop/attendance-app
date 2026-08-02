@@ -457,17 +457,25 @@ const TeacherDashboard = () => {
   const selectedDayNum = getWeekDayNumber(date);
   const scheduledTodaySlots = timetable.filter(slot => slot.dayOfWeek === selectedDayNum);
 
+  if (!user) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>Verifying Faculty Credentials...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container" style={{ padding: '0px' }}>
       {/* Profile Header */}
       <div className="card profile-card" style={{ marginBottom: '24px' }}>
         <div className="profile-avatar" style={{ background: 'linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%)' }}>
-          {user.name.charAt(0)}
+          {user?.name?.charAt(0) || 'T'}
         </div>
         <div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{user.name}</h2>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{user?.name || 'Faculty Instructor'}</h2>
           <p style={{ fontSize: '0.9rem' }}>
-            Faculty Employee ID: <strong style={{ color: '#fff' }}>{user.teacher?.employeeId || 'N/A'}</strong>
+            Faculty Employee ID: <strong style={{ color: '#fff' }}>{user?.teacher?.employeeId || 'N/A'}</strong>
           </p>
         </div>
       </div>

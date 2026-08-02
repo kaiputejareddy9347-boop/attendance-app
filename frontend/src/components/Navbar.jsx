@@ -256,10 +256,6 @@ const Navbar = () => {
                   <Layers size={18} />
                   <span>Classes</span>
                 </Link>
-                <Link to="/dashboard?tab=timetable" className={`sidebar-link ${isActive('/dashboard', 'timetable') ? 'active' : ''}`}>
-                  <Clock size={18} />
-                  <span>Timetable</span>
-                </Link>
                 <Link to="/dashboard?tab=bunk" className={`sidebar-link ${isActive('/dashboard', 'bunk') ? 'active' : ''}`}>
                   <Calculator size={18} style={{ color: 'var(--accent-secondary)' }} />
                   <span>Bunk Estimator</span>
