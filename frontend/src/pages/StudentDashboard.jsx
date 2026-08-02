@@ -48,7 +48,7 @@ const StudentDashboard = () => {
   const [targetPercentage, setTargetPercentage] = useState(75);
 
   useEffect(() => {
-    if (activeTab === 'CALENDAR') {
+    if (activeTab === 'TIMETABLE' || activeTab === 'CALENDAR') {
       fetchDateAttendance(plannerDate);
     }
   }, [plannerDate, activeTab]);
@@ -527,7 +527,7 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {/* TAB 2: COURSES LIST & UNIT-WISE STUDY NOTES */}
+      {/* TAB 2: COURSES LIST & TEACHER-UPLOADED UNIT NOTES */}
       {activeTab === 'COURSES' && (
         <div className="card col-span-12">
           <h3>Registered Course Subjects & Unit Notes</h3>
@@ -535,39 +535,59 @@ const StudentDashboard = () => {
             <p style={{ color: 'var(--text-muted)' }}>No subjects found.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
-              {breakdown.map((subj) => (
-                <div key={subj.subjectId} style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-                    <div>
-                      <h4 style={{ fontSize: '1.1rem', fontWeight: '700' }}>{subj.subjectName}</h4>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)', marginTop: '2px' }}>
-                        Code: {subj.subjectCode} | Lecturer: {subj.teacherName}
+              {(() => {
+                const teacherPdfs = (() => {
+                  const saved = localStorage.getItem('college_teacher_pdfs');
+                  return saved ? JSON.parse(saved) : {};
+                })();
+
+                return breakdown.map((subj) => {
+                  const subjPdfs = teacherPdfs[subj.subjectId] || [];
+
+                  return (
+                    <div key={subj.subjectId} style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                        <div>
+                          <h4 style={{ fontSize: '1.1rem', fontWeight: '700' }}>{subj.subjectName}</h4>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)', marginTop: '2px' }}>
+                            Code: {subj.subjectCode} | Lecturer: {subj.teacherName}
+                          </div>
+                        </div>
+                        <span className="badge badge-present">Active Course</span>
+                      </div>
+
+                      <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px' }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px' }}>
+                          📚 Unit-wise Study PDFs & Lecture Notes:
+                        </div>
+                        {subjPdfs.length === 0 ? (
+                          <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px dashed var(--glass-border)', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                            📁 No unit study PDFs uploaded by lecturer for this course yet.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px' }}>
+                            {subjPdfs.map((pdf) => (
+                              <button
+                                key={pdf.id}
+                                type="button"
+                                onClick={() => showToast(`Downloading "${pdf.title}"...`, 'info')}
+                                className="btn btn-secondary btn-sm"
+                                style={{ justifyContent: 'flex-start', textAlign: 'left', fontSize: '0.775rem', gap: '8px' }}
+                              >
+                                <span>📄</span>
+                                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  <div>{pdf.title}</div>
+                                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Uploaded: {pdf.uploadedAt}</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <span className="badge badge-present">Active Course</span>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px' }}>
-                      📚 Unit-wise Study PDFs & Notes:
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
-                      {['Unit 1: Fundamentals & Concepts', 'Unit 2: Architecture & Analysis', 'Unit 3: Implementation & Design', 'Unit 4: Advanced Systems', 'Unit 5: Exam Question Bank'].map((unit, idx) => (
-                        <button
-                          key={unit}
-                          type="button"
-                          onClick={() => showToast(`Downloading ${subj.subjectCode}_${unit.split(':')[0]}.pdf...`, 'info')}
-                          className="btn btn-secondary btn-sm"
-                          style={{ justifyContent: 'flex-start', textAlign: 'left', fontSize: '0.775rem', gap: '8px' }}
-                        >
-                          <span>📄</span>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{unit}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                });
+              })()}
             </div>
           )}
         </div>
@@ -981,22 +1001,149 @@ const StudentDashboard = () => {
           <h3>Student Clubs & Recruitment Drive</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px', marginTop: '16px' }}>
             {[
-              { name: 'Coding & Competitive Programming Club', icon: '💻', desc: 'DSA, LeetCode, and ICPC contest preparation group.' },
-              { name: 'Robotics & Automation Society', icon: '🤖', desc: 'IoT, hardware tinkering, and drone building club.' },
-              { name: 'IEEE Student Branch Chapter', icon: '🌐', desc: 'Research papers, workshops, and international conferences.' },
-              { name: 'Fine Arts & Drama Society', icon: '🎭', desc: 'Theatre, stage performances, street plays, and art.' }
+              { 
+                id: 'club-1',
+                name: 'Coding & Competitive Programming Club', 
+                icon: '💻', 
+                desc: 'DSA, LeetCode, and ICPC contest preparation group.',
+                advisor: 'Dr. A. Sharma (Head of CS)',
+                projects: 'Automated Code Evaluator, Open Source Hackathons',
+                eligibilityVol: 'Open to 1st, 2nd, and 3rd year students. Basic programming knowledge in C++/Python/Java.',
+                eligibilityCoord: 'Open to 2nd & 3rd year students. Prior project experience & 200+ LeetCode problems solved.'
+              },
+              { 
+                id: 'club-2',
+                name: 'Robotics & Automation Society', 
+                icon: '🤖', 
+                desc: 'IoT, hardware tinkering, and drone building club.',
+                advisor: 'Prof. R. Verma (Robotics Lab)',
+                projects: 'Autonomous Drone Navigation, Quadruped Robot Build',
+                eligibilityVol: 'Open to all departments. Interest in Arduino/Raspberry Pi and electronics.',
+                eligibilityCoord: 'Open to 2nd & 3rd year EC/CS/ME students with PCB design experience.'
+              },
+              { 
+                id: 'club-3',
+                name: 'IEEE Student Branch Chapter', 
+                icon: '🌐', 
+                desc: 'Research papers, workshops, and international conferences.',
+                advisor: 'Dr. M. Patel (Vice Dean Academics)',
+                projects: 'Annual IEEE Conference, IEEE Xplore Publishing Workshop',
+                eligibilityVol: 'Open to all students with active IEEE membership or interest.',
+                eligibilityCoord: 'Minimum 7.5 CGPA required and strong technical writing skills.'
+              },
+              { 
+                id: 'club-4',
+                name: 'Fine Arts & Drama Society', 
+                icon: '🎭', 
+                desc: 'Theatre, stage performances, street plays, and art.',
+                advisor: 'Prof. S. Nair (Humanities)',
+                projects: 'Street Play for Social Awareness, Annual Cultural Play',
+                eligibilityVol: 'Open to all creative students. Auditions held every semester.',
+                eligibilityCoord: 'Prior stage management or script writing experience preferred.'
+              }
             ].map(club => (
-              <div key={club.name} style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>{club.icon}</div>
-                <h4 style={{ fontSize: '1.1rem' }}>{club.name}</h4>
-                <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '8px 0' }}>{club.desc}</p>
-                <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
-                  <button type="button" onClick={() => showToast(`Applied as Volunteer for ${club.name}!`, 'success')} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Volunteer</button>
-                  <button type="button" onClick={() => showToast(`Applied as Coordinator for ${club.name}!`, 'success')} className="btn btn-primary btn-sm" style={{ flex: 1 }}>Coordinator</button>
+              <div key={club.name} style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: '2rem', marginBottom: '8px' }}>{club.icon}</div>
+                  <h4 style={{ fontSize: '1.1rem' }}>{club.name}</h4>
+                  <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '8px 0' }}>{club.desc}</p>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--accent-secondary)', marginTop: '4px' }}>
+                    Faculty Advisor: {club.advisor}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '16px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setStudentClassInfo({ ...studentClassInfo, activeClubModal: club })} 
+                    className="btn btn-secondary btn-sm" 
+                    style={{ width: '100%', gap: '6px' }}
+                  >
+                    🔍 View Full Club Details & Apply
+                  </button>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Club Details & Registration Modal */}
+          {studentClassInfo?.activeClubModal && (() => {
+            const club = studentClassInfo.activeClubModal;
+            return (
+              <div style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0,0,0,0.75)',
+                backdropFilter: 'blur(8px)',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px'
+              }}>
+                <div className="card" style={{ maxWidth: '550px', width: '100%', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--accent-primary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '2rem' }}>{club.icon}</span>
+                      <div>
+                        <h3 style={{ fontSize: '1.25rem' }}>{club.name}</h3>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--accent-secondary)' }}>Advisor: {club.advisor}</span>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setStudentClassInfo({ ...studentClassInfo, activeClubModal: null })}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.875rem' }}>
+                    <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+                      <strong>📌 Club Overview & Objectives:</strong>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{club.desc}</p>
+                    </div>
+
+                    <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+                      <strong>🚀 Ongoing Projects & Initiatives:</strong>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{club.projects}</p>
+                    </div>
+
+                    <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+                      <strong>📋 Eligibility Guidelines:</strong>
+                      <div style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                        <div>• <strong>Volunteer Role:</strong> {club.eligibilityVol}</div>
+                        <div style={{ marginTop: '4px' }}>• <strong>Coordinator Role:</strong> {club.eligibilityCoord}</div>
+                      </div>
+                    </div>
+
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const role = e.target.clubRole.value;
+                      showToast(`Registration Application submitted for ${role} at ${club.name}! Faculty advisor will review.`, 'success');
+                      setStudentClassInfo({ ...studentClassInfo, activeClubModal: null });
+                    }} style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px' }}>
+                      <h4 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>Apply For Membership Position:</h4>
+                      <div className="form-group">
+                        <label className="form-label">Desired Position</label>
+                        <select name="clubRole" className="form-select" defaultValue="Volunteer">
+                          <option value="Volunteer">Student Volunteer Member</option>
+                          <option value="Coordinator">Event Coordinator Lead</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Statement of Interest / Skills</label>
+                        <textarea className="form-textarea" rows="2" placeholder="Briefly state your relevant skills & why you want to join..." required />
+                      </div>
+                      <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+                        Submit Registration Application
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -1036,8 +1183,8 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {/* TAB 10: CALENDAR PLANNER */}
-      {activeTab === 'CALENDAR' && (() => {
+      {/* TAB 10: CALENDAR PLANNER & TIMETABLE */}
+      {(activeTab === 'TIMETABLE' || activeTab === 'CALENDAR') && (() => {
         const isDateValid = (() => {
           if (!collegeConfig || !collegeConfig.semesterStart || !collegeConfig.semesterEnd) return true;
           const target = new Date(plannerDate);

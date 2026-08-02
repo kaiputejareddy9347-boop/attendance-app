@@ -99,12 +99,12 @@ const Login = () => {
           <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
             Quick Demo Login Accounts:
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
             <button
               type="button"
               onClick={() => autofillRole('student@college.edu', 'password123')}
               className="btn btn-secondary btn-sm"
-              style={{ fontSize: '0.725rem', padding: '6px 4px', borderRadius: '8px' }}
+              style={{ fontSize: '0.8rem', padding: '8px', borderRadius: '8px' }}
             >
               🎓 Student
             </button>
@@ -112,17 +112,9 @@ const Login = () => {
               type="button"
               onClick={() => autofillRole('teacher@college.edu', 'password123')}
               className="btn btn-secondary btn-sm"
-              style={{ fontSize: '0.725rem', padding: '6px 4px', borderRadius: '8px' }}
+              style={{ fontSize: '0.8rem', padding: '8px', borderRadius: '8px' }}
             >
               👨‍🏫 Teacher
-            </button>
-            <button
-              type="button"
-              onClick={() => autofillRole('admin@college.edu', 'password123')}
-              className="btn btn-secondary btn-sm"
-              style={{ fontSize: '0.725rem', padding: '6px 4px', borderRadius: '8px' }}
-            >
-              🛡️ Admin
             </button>
           </div>
         </div>

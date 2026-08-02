@@ -40,14 +40,46 @@ const TeacherDashboard = () => {
   const [fees, setFees] = useState([]);
   const [history, setHistory] = useState([]);
 
-  // College Branding configuration
-  const [collegeConfig, setCollegeConfig] = useState(null);
+  // Unit PDFs state for assigned subjects
+  const [teacherPdfs, setTeacherPdfs] = useState(() => {
+    const saved = localStorage.getItem('college_teacher_pdfs');
+    return saved ? JSON.parse(saved) : {};
+  });
 
-  // Notices state (post notice form + list)
-  const [notices, setNotices] = useState([]);
-  const [loadingNotices, setLoadingNotices] = useState(false);
-  const [noticeTitle, setNoticeTitle] = useState('');
-  const [noticeContent, setNoticeContent] = useState('');
+  const handleAddPdf = (subjectId, subjectCode) => {
+    const pdfName = prompt(`Enter Unit PDF Title for ${subjectCode} (e.g. Unit 1: Advanced Algorithms Notes):`);
+    if (!pdfName) return;
+
+    const currentPdfs = teacherPdfs[subjectId] || [];
+    const newPdf = {
+      id: Date.now().toString(),
+      title: pdfName,
+      uploadedAt: new Date().toLocaleDateString(),
+      fileName: `${subjectCode}_${pdfName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
+    };
+
+    const updated = {
+      ...teacherPdfs,
+      [subjectId]: [...currentPdfs, newPdf]
+    };
+
+    setTeacherPdfs(updated);
+    localStorage.setItem('college_teacher_pdfs', JSON.stringify(updated));
+    showToast(`Successfully uploaded "${pdfName}" for ${subjectCode}!`, 'success');
+  };
+
+  const handleRemovePdf = (subjectId, pdfId) => {
+    if (!confirm('Are you sure you want to remove this PDF?')) return;
+    const currentPdfs = teacherPdfs[subjectId] || [];
+    const updatedPdfs = currentPdfs.filter(p => p.id !== pdfId);
+    const updated = {
+      ...teacherPdfs,
+      [subjectId]: updatedPdfs
+    };
+    setTeacherPdfs(updated);
+    localStorage.setItem('college_teacher_pdfs', JSON.stringify(updated));
+    showToast('PDF note removed.', 'info');
+  };
   const [postingNotice, setPostingNotice] = useState(false);
 
   // Calendar Planner states
@@ -703,7 +735,6 @@ const TeacherDashboard = () => {
           </div>
         </div>
       )}
-
       {/* TAB 3: ASSIGNED COURSES & UNIT PDF MANAGER */}
       {activeTab === 'COURSES' && (
         <div className="card col-span-12">
@@ -712,39 +743,58 @@ const TeacherDashboard = () => {
             <p style={{ color: 'var(--text-muted)' }}>No courses assigned to your profile.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
-              {subjects.map((sub) => (
-                <div key={sub.id} style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-                    <div>
-                      <h4 style={{ fontSize: '1.1rem', fontWeight: '700' }}>{sub.name}</h4>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)', marginTop: '2px' }}>
-                        Code: {sub.code} | Semester {sub.semester} | Type: {sub.type || 'THEORY'}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => showToast(`Attached new PDF note for ${sub.code}`, 'success')}
-                      className="btn btn-primary btn-sm"
-                    >
-                      + Upload Unit PDF
-                    </button>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px' }}>
-                      Attached Unit Notes for Students (Unit 1 to 5):
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '10px' }}>
-                      {['Unit 1: Foundations & Syllabus', 'Unit 2: Lecture Slides & Diagrams', 'Unit 3: Mid-Sem Practice Problems', 'Unit 4: Advanced Systems Notes', 'Unit 5: Final Exam Question Bank'].map((unit) => (
-                        <div key={unit} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', fontSize: '0.775rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📄 {unit}</span>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--color-present)', fontWeight: '700' }}>Uploaded</span>
+              {subjects.map((sub) => {
+                const subPdfs = teacherPdfs[sub.id] || [];
+                return (
+                  <div key={sub.id} style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                      <div>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: '700' }}>{sub.name}</h4>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)', marginTop: '2px' }}>
+                          Code: {sub.code} | Semester {sub.semester} | Type: {sub.type || 'THEORY'}
                         </div>
-                      ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAddPdf(sub.id, sub.code)}
+                        className="btn btn-primary btn-sm"
+                      >
+                        + Upload Unit PDF
+                      </button>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px' }}>
+                        Uploaded Unit Notes ({subPdfs.length} Files):
+                      </div>
+
+                      {subPdfs.length === 0 ? (
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          No unit PDFs uploaded for this subject yet. Click "+ Upload Unit PDF" to add lecture notes for students.
+                        </p>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '10px' }}>
+                          {subPdfs.map((pdf) => (
+                            <div key={pdf.id} style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div>
+                                <div style={{ fontWeight: '600' }}>📄 {pdf.title}</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>{pdf.uploadedAt}</div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePdf(sub.id, pdf.id)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--color-absent)', cursor: 'pointer', fontSize: '0.75rem' }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
