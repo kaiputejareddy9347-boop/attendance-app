@@ -296,8 +296,12 @@ const Navbar = () => {
               </>
             )}
 
-            {user.role === 'TEACHER' && (
+            {(user?.role || '').toUpperCase() === 'TEACHER' && (
               <>
+                <Link to="/teacher/dashboard?tab=attendance" className={`sidebar-link ${isActive('/teacher/dashboard', 'attendance') ? 'active' : ''}`}>
+                  <ClipboardCheck size={18} style={{ color: 'var(--color-present)' }} />
+                  <span>Mark Attendance</span>
+                </Link>
                 <Link to="/teacher/dashboard?tab=courses" className={`sidebar-link ${isActive('/teacher/dashboard', 'courses') ? 'active' : ''}`}>
                   <BookOpen size={18} />
                   <span>Courses</span>
