@@ -317,109 +317,6 @@ const StudentDashboard = () => {
               ))}
             </div>
           </div>
-
-          {/* Bunk & Attendance Estimator */}
-          <div className="card col-span-12" style={{ marginTop: '24px' }}>
-            <h3>Bunk & Attendance Calculator</h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
-              {/* Skip Estimator */}
-              <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
-                <h4 style={{ fontWeight: '700', marginBottom: '12px' }}>Bunk Estimator</h4>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="bunkInput">Bunk (Skip) Upcoming Sessions</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <input 
-                      id="bunkInput"
-                      type="range" 
-                      min="1" 
-                      max="20" 
-                      className="form-input" 
-                      style={{ flex: 1, padding: 0 }}
-                      value={bunkSessions} 
-                      onChange={(e) => setBunkSessions(parseInt(e.target.value))} 
-                    />
-                    <strong style={{ fontSize: '1.2rem', width: '40px', textAlign: 'right' }}>{bunkSessions}</strong>
-                  </div>
-                </div>
-
-                {(() => {
-                  const P = summary.present + summary.late;
-                  const T = summary.total;
-                  const estTotal = T + bunkSessions;
-                  const estPercentage = estTotal > 0 ? Math.round((P / estTotal) * 100) : 100;
-                  const isSafe = estPercentage >= 75;
-
-                  return (
-                    <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', background: isSafe ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)', border: isSafe ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)' }}>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Estimated Attendance:</div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: '800', color: isSafe ? 'var(--color-present)' : 'var(--color-absent)', margin: '4px 0' }}>
-                        {estPercentage}%
-                      </div>
-                      <div style={{ fontSize: '0.75rem', fontWeight: '600', color: isSafe ? 'var(--color-present)' : 'var(--color-absent)' }}>
-                        {isSafe ? '✓ Safe: Still above 75% threshold' : '⚠️ Warning: Drops below 75% attendance threshold!'}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* Goal Tracker */}
-              <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
-                <h4 style={{ fontWeight: '700', marginBottom: '12px' }}>Goal Planner</h4>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="goalSelect">Target Threshold (%)</label>
-                  <select 
-                    id="goalSelect"
-                    className="form-select" 
-                    value={targetPercentage} 
-                    onChange={(e) => setTargetPercentage(parseInt(e.target.value))}
-                  >
-                    <option value={75}>75% (Minimum Passing)</option>
-                    <option value={80}>80% (Good Standing)</option>
-                    <option value={85}>85% (Excellent Standing)</option>
-                    <option value={90}>90% (Distinction Goal)</option>
-                  </select>
-                </div>
-
-                {(() => {
-                  const P = summary.present + summary.late;
-                  const T = summary.total;
-                  const currentPct = T > 0 ? (P / T) * 100 : 100;
-
-                  if (currentPct < targetPercentage) {
-                    const needed = Math.ceil((targetPercentage * T - 100 * P) / (100 - targetPercentage));
-                    const safeNeeded = needed > 0 ? needed : 0;
-                    return (
-                      <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', color: 'var(--accent-secondary)' }}>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Action Required:</div>
-                        <div style={{ fontSize: '1.05rem', fontWeight: '800', marginTop: '6px' }}>
-                          Attend <span style={{ fontSize: '1.4rem', color: '#fff' }}>{safeNeeded}</span> consecutive classes
-                        </div>
-                        <p style={{ fontSize: '0.75rem', marginTop: '4px', opacity: 0.9 }}>
-                          To raise your overall attendance from {summary.percentage}% to {targetPercentage}%.
-                        </p>
-                      </div>
-                    );
-                  } else {
-                    const bunks = Math.floor((100 * P - targetPercentage * T) / targetPercentage);
-                    const safeBunks = bunks > 0 ? bunks : 0;
-                    return (
-                      <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', color: 'var(--color-present)' }}>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Bunk Allowance:</div>
-                        <div style={{ fontSize: '1.05rem', fontWeight: '800', marginTop: '6px' }}>
-                          You can bunk <span style={{ fontSize: '1.4rem', color: '#fff' }}>{safeBunks}</span> classes
-                        </div>
-                        <p style={{ fontSize: '0.75rem', marginTop: '4px', opacity: 0.9 }}>
-                          consecutively without falling below your target of {targetPercentage}%.
-                        </p>
-                      </div>
-                    );
-                  }
-                })()}
-              </div>
-            </div>
-          </div>
         </div>
       )}
 
@@ -1185,100 +1082,121 @@ const StudentDashboard = () => {
 
       {/* TAB 10: CALENDAR PLANNER & TIMETABLE */}
       {(activeTab === 'TIMETABLE' || activeTab === 'CALENDAR') && (() => {
-        const isDateValid = (() => {
-          if (!collegeConfig || !collegeConfig.semesterStart || !collegeConfig.semesterEnd) return true;
-          const target = new Date(plannerDate);
-          target.setUTCHours(0, 0, 0, 0);
-          const start = new Date(collegeConfig.semesterStart);
-          start.setUTCHours(0, 0, 0, 0);
-          const end = new Date(collegeConfig.semesterEnd);
-          end.setUTCHours(23, 59, 59, 999);
-          return target >= start && target <= end;
-        })();
-
         const weekDaysName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const dayOfWeekVal = new Date(plannerDate).getDay();
         const clickedDayName = weekDaysName[dayOfWeekVal];
         
-        // Match weekday to timetable (1 = Mon, ..., 5 = Fri)
-        const scheduledLectures = timetable.filter(s => s.dayOfWeek === dayOfWeekVal);
+        const scheduledLectures = timetable.filter(s => s.dayOfWeek === (dayOfWeekVal === 0 ? 7 : dayOfWeekVal));
         const todayString = new Date().toISOString().split('T')[0];
         const isFutureDate = plannerDate > todayString;
 
         return (
-          <div className="dashboard-grid">
-            <div className="card col-span-5">
-              <h3>Today's Timetable</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Weekly Timetable Schedule */}
+            <div className="card col-span-12">
+              <h3>My Weekly Class Timetable</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((dayName, idx) => {
+                  const dayNum = idx + 1;
+                  const daySlots = timetable.filter(s => s.dayOfWeek === dayNum);
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="planDate">Choose Date</label>
-                <input 
-                  id="planDate" 
-                  type="date" 
-                  className="form-input" 
-                  value={plannerDate} 
-                  onChange={(e) => setPlannerDate(e.target.value)} 
-                />
+                  return (
+                    <div key={dayName} style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                      <h4 style={{ color: 'var(--accent-secondary)', fontSize: '0.95rem', fontWeight: '700', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px', marginBottom: '12px' }}>
+                        {dayName}
+                      </h4>
+                      {daySlots.length === 0 ? (
+                        <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>No lectures scheduled.</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {daySlots.map(s => (
+                            <div key={s.id} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+                              <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>{s.startTime} - {s.endTime}</div>
+                              <div style={{ fontWeight: '600', fontSize: '0.85rem', marginTop: '2px' }}>{s.subject.name}</div>
+                              <div style={{ fontSize: '0.725rem', color: 'var(--accent-primary)', marginTop: '2px' }}>Room: {s.room}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="card col-span-7">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3>Schedule & Attendance for {clickedDayName}</h3>
-                {isFutureDate && <span className="badge badge-pending">Future Date</span>}
+            {/* Date-wise Attendance Inspector */}
+            <div className="dashboard-grid">
+              <div className="card col-span-5">
+                <h3>Attendance Date Inspector</h3>
+                <div className="form-group" style={{ marginTop: '14px' }}>
+                  <label className="form-label" htmlFor="planDate">Select Date to Check Logs</label>
+                  <input 
+                    id="planDate" 
+                    type="date" 
+                    className="form-input" 
+                    value={plannerDate} 
+                    onChange={(e) => setPlannerDate(e.target.value)} 
+                  />
+                </div>
               </div>
 
-              {loadingDateAtt ? (
-                <p>Loading session logs...</p>
-              ) : scheduledLectures.length === 0 ? (
-                <div style={{ padding: '40px', border: '1px dashed var(--glass-border)', borderRadius: '12px', textAlign: 'center' }}>
-                  <p style={{ color: 'var(--text-muted)' }}>No timetable lectures scheduled for {clickedDayName}s.</p>
+              <div className="card col-span-7">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3>Schedule & Attendance for {clickedDayName}</h3>
+                  {isFutureDate && <span className="badge badge-pending">Future Date</span>}
                 </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {scheduledLectures.map((slot) => {
-                    // Match attendance status from response
-                    const attRecord = dateAttendance.find(r => r.subjectId === slot.subjectId);
-                    
-                    let statusLabel = 'No attendance marked';
-                    let statusBadgeClass = 'pending';
 
-                    if (isFutureDate) {
-                      statusLabel = 'Scheduled (Future Slot)';
-                      statusBadgeClass = 'pending';
-                    } else if (attRecord) {
-                      statusLabel = attRecord.status;
-                      statusBadgeClass = attRecord.status.toLowerCase();
-                    }
+                {loadingDateAtt ? (
+                  <p>Loading session logs...</p>
+                ) : scheduledLectures.length === 0 ? (
+                  <div style={{ padding: '30px', border: '1px dashed var(--glass-border)', borderRadius: '12px', textAlign: 'center' }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No timetable lectures scheduled for {clickedDayName}s.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {scheduledLectures.map((slot) => {
+                      const attRecord = dateAttendance.find(r => r.subjectId === slot.subjectId);
+                      
+                      let statusLabel = 'No attendance marked';
+                      let statusBadgeClass = 'pending';
 
-                    return (
-                      <div key={slot.id} style={{
-                        padding: '16px',
-                        borderRadius: '12px',
-                        background: 'rgba(255,255,255,0.01)',
-                        border: '1px solid var(--glass-border)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}>
-                        <div>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                            {slot.startTime} - {slot.endTime} | Room: {slot.room}
+                      if (isFutureDate) {
+                        statusLabel = 'Scheduled (Future Slot)';
+                        statusBadgeClass = 'pending';
+                      } else if (attRecord) {
+                        statusLabel = attRecord.status;
+                        statusBadgeClass = attRecord.status.toLowerCase();
+                      }
+
+                      return (
+                        <div key={slot.id} style={{
+                          padding: '14px',
+                          borderRadius: '10px',
+                          background: 'rgba(255,255,255,0.01)',
+                          border: '1px solid var(--glass-border)',
+                          display: 'flex',
+                          justify: 'space-between',
+                          alignItems: 'center'
+                        }}>
+                          <div>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                              {slot.startTime} - {slot.endTime} | Room: {slot.room}
+                            </span>
+                            <h4 style={{ fontWeight: '600', marginTop: '2px', fontSize: '0.95rem' }}>{slot.subject.name}</h4>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                              Lecturer: {slot.subject.teacher?.user?.name || 'TBA'}
+                            </p>
+                          </div>
+
+                          <span className={`badge badge-${statusBadgeClass}`}>
+                            {statusLabel}
                           </span>
-                          <h4 style={{ fontWeight: '600', marginTop: '4px' }}>{slot.subject.name}</h4>
-                          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                            Lecturer: {slot.subject.teacher?.user?.name || 'TBA'}
-                          </p>
                         </div>
-
-                        <span className={`badge badge-${statusBadgeClass}`}>
-                          {statusLabel}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );

@@ -57,6 +57,8 @@ const Navbar = () => {
   if (!user) return null;
 
   const handleLogout = () => {
+    document.body.classList.remove('light-theme');
+    localStorage.removeItem('theme_mode');
     logout();
     navigate('/login');
   };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
@@ -12,6 +12,11 @@ const Login = () => {
   const { login } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.body.classList.remove('light-theme');
+    localStorage.removeItem('theme_mode');
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
