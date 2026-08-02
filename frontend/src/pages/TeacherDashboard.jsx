@@ -272,21 +272,14 @@ const TeacherDashboard = () => {
     setLoadingNotices(true);
     try {
       const res = await axios.get('/api/notices');
-      const apiNotices = Array.isArray(res.data) ? res.data : [];
-      const localNotices = JSON.parse(localStorage.getItem('college_notices') || '[]');
-      
-      const mergedMap = new Map();
-      apiNotices.forEach(n => mergedMap.set(n.id, n));
-      localNotices.forEach(n => {
-        if (!mergedMap.has(n.id)) mergedMap.set(n.id, n);
-      });
-      
-      const mergedList = Array.from(mergedMap.values());
-      setNotices(mergedList);
+      if (Array.isArray(res.data)) {
+        setNotices(res.data);
+      } else {
+        setNotices([]);
+      }
     } catch (err) {
       console.error('Error fetching notices', err);
-      const localNotices = JSON.parse(localStorage.getItem('college_notices') || '[]');
-      setNotices(localNotices);
+      setNotices([]);
     } finally {
       setLoadingNotices(false);
     }
@@ -299,45 +292,30 @@ const TeacherDashboard = () => {
       return;
     }
     setPostingNotice(true);
-    
-    const newNoticeObj = {
-      id: Date.now().toString(),
-      title: noticeTitle,
-      content: noticeContent,
-      postedBy: user?.name || 'Faculty Lecturer',
-      createdAt: new Date().toISOString()
-    };
-
     try {
-      const res = await axios.post('/api/notices', { title: noticeTitle, content: noticeContent });
-      if (res.data && res.data.id) {
-        newNoticeObj.id = res.data.id;
-      }
+      await axios.post('/api/notices', { title: noticeTitle, content: noticeContent });
+      showToast('Announcement published successfully to College Notice Board!', 'success');
+      setNoticeTitle('');
+      setNoticeContent('');
+      fetchNotices();
     } catch (err) {
-      console.error('API post notice error, saving to local store', err);
+      console.error('Error posting notice', err);
+      showToast('Failed to publish announcement.', 'error');
+    } finally {
+      setPostingNotice(false);
     }
-
-    setNotices(prev => [newNoticeObj, ...prev]);
-    const localNotices = JSON.parse(localStorage.getItem('college_notices') || '[]');
-    localStorage.setItem('college_notices', JSON.stringify([newNoticeObj, ...localNotices]));
-
-    showToast('Announcement published successfully to College Notice Board!', 'success');
-    setNoticeTitle('');
-    setNoticeContent('');
-    setPostingNotice(false);
   };
 
   const handleDeleteNotice = async (id) => {
     if (!confirm('Are you sure you want to delete this announcement?')) return;
     try {
       await axios.delete(`/api/notices/${id}`);
+      showToast('Notice deleted successfully.', 'success');
+      fetchNotices();
     } catch (err) {
-      console.error('API notice delete error', err);
+      console.error('Error deleting notice', err);
+      showToast('Failed to delete notice.', 'error');
     }
-    setNotices(prev => prev.filter(n => n.id !== id));
-    const localNotices = JSON.parse(localStorage.getItem('college_notices') || '[]');
-    localStorage.setItem('college_notices', JSON.stringify(localNotices.filter(n => n.id !== id)));
-    showToast('Notice deleted successfully.', 'success');
   };
 
   const fetchClassStudents = async (classId, subjectId, dateParam) => {
