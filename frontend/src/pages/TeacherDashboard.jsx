@@ -981,9 +981,9 @@ const TeacherDashboard = () => {
                       daySlots.map(s => (
                         <div key={s.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>{s.startTime} - {s.endTime}</span>
-                          <div style={{ fontWeight: '600', fontSize: '0.9rem', marginTop: '4px' }}>{s.subject.name}</div>
+                          <div style={{ fontWeight: '600', fontSize: '0.9rem', marginTop: '4px' }}>{s.subject?.name || 'Subject'}</div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Class: {s.class.name}</span>
+                            <span>Class: {s.class?.name || 'N/A'}</span>
                             <span style={{ fontWeight: '700' }}>{s.room}</span>
                           </div>
                         </div>
@@ -1018,10 +1018,10 @@ const TeacherDashboard = () => {
                 <tbody>
                   {fees.map((f) => (
                     <tr key={f.id} className="attendance-row">
-                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{f.student.user.name}</td>
-                      <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{f.student.rollNumber}</td>
+                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{f.student?.user?.name || 'Student'}</td>
+                      <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{f.student?.rollNumber || 'N/A'}</td>
                       <td className="attendance-cell" style={{ color: 'var(--text-secondary)' }}>{f.description}</td>
-                      <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '700' }}>₹{f.amount.toFixed(2)}</td>
+                      <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '700' }}>₹{f.amount ? f.amount.toFixed(2) : '0.00'}</td>
                       <td className="attendance-cell" style={{ textAlign: 'right' }}>
                         <span className={`badge ${f.status === 'PAID' ? 'badge-present' : 'badge-absent'}`}>
                           {f.status}
@@ -1057,10 +1057,10 @@ const TeacherDashboard = () => {
                   {history.map((log) => (
                     <tr key={log.id} className="attendance-row">
                       <td className="attendance-cell">{new Date(log.date).toLocaleDateString()}</td>
-                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{log.subject.name} ({log.subject.code})</td>
-                      <td className="attendance-cell">{log.student.user.name} ({log.student.rollNumber})</td>
+                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{log.subject?.name || 'Subject'} ({log.subject?.code || 'N/A'})</td>
+                      <td className="attendance-cell">{log.student?.user?.name || 'Student'} ({log.student?.rollNumber || 'N/A'})</td>
                       <td className="attendance-cell" style={{ textAlign: 'right' }}>
-                        <span className={`badge badge-${log.status.toLowerCase()}`}>
+                        <span className={`badge badge-${log.status?.toLowerCase() || 'pending'}`}>
                           {log.status}
                         </span>
                       </td>
@@ -1095,9 +1095,9 @@ const TeacherDashboard = () => {
                 }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                      <h4 style={{ fontSize: '1.1rem' }}>{leave.student.user.name}</h4>
+                      <h4 style={{ fontSize: '1.1rem' }}>{leave.student?.user?.name || 'Student'}</h4>
                       <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
-                        Roll: {leave.student.rollNumber} | Class: {leave.student.class.name}
+                        Roll: {leave.student?.rollNumber || 'N/A'} | Class: {leave.student?.class?.name || 'N/A'}
                       </span>
                     </div>
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
