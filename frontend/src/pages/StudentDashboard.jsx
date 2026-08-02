@@ -47,6 +47,52 @@ const StudentDashboard = () => {
   const [bunkSessions, setBunkSessions] = useState(1);
   const [targetPercentage, setTargetPercentage] = useState(75);
 
+  // Mobile & LeetCode profile configuration
+  const [mobilePhone, setMobilePhone] = useState(() => {
+    return localStorage.getItem('student_profile_mobile') || '+91 98765 43210';
+  });
+  const [editingMobile, setEditingMobile] = useState(false);
+  const [tempMobile, setTempMobile] = useState(mobilePhone);
+
+  const [leetcodeUsername, setLeetcodeUsername] = useState(() => {
+    return localStorage.getItem('student_leetcode_username') || '';
+  });
+  const [tempLeetcodeUser, setTempLeetcodeUser] = useState(leetcodeUsername);
+  const [leetcodeStats, setLeetcodeStats] = useState(null);
+  const [loadingLeetcode, setLoadingLeetcode] = useState(false);
+
+  const fetchLeetcodeStats = async (username) => {
+    if (!username || !username.trim()) {
+      setLeetcodeStats(null);
+      return;
+    }
+    setLoadingLeetcode(true);
+    try {
+      const res = await axios.get(`https://leetcode-stats-api.herokuapp.com/${username.trim()}`);
+      if (res.data && res.data.status === 'success') {
+        setLeetcodeStats({
+          ranking: res.data.ranking ? `#${res.data.ranking.toLocaleString()}` : 'Unranked',
+          totalSolved: res.data.totalSolved,
+          totalQuestions: res.data.totalQuestions,
+          acceptanceRate: res.data.acceptanceRate
+        });
+      } else {
+        setLeetcodeStats({ error: 'User not found or private profile' });
+      }
+    } catch (err) {
+      console.error('LeetCode API fetch error', err);
+      setLeetcodeStats({ error: 'Unable to fetch live LeetCode rank' });
+    } finally {
+      setLoadingLeetcode(false);
+    }
+  };
+
+  useEffect(() => {
+    if (leetcodeUsername) {
+      fetchLeetcodeStats(leetcodeUsername);
+    }
+  }, [leetcodeUsername]);
+
   useEffect(() => {
     if (activeTab === 'TIMETABLE' || activeTab === 'CALENDAR') {
       fetchDateAttendance(plannerDate);
@@ -820,7 +866,22 @@ const StudentDashboard = () => {
               </div>
               <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>LeetCode Global Rank</span>
-                <div style={{ fontWeight: '800', fontSize: '1.25rem', marginTop: '4px', color: 'var(--color-present)' }}>#34,120 (Knight)</div>
+                <div style={{ fontWeight: '800', fontSize: '1.15rem', marginTop: '4px', color: 'var(--color-present)' }}>
+                  {loadingLeetcode ? (
+                    '⏳ Fetching...'
+                  ) : leetcodeStats?.ranking ? (
+                    `${leetcodeStats.ranking} (${leetcodeStats.totalSolved} Solved)`
+                  ) : leetcodeUsername ? (
+                    `User: ${leetcodeUsername}`
+                  ) : (
+                    '⚠️ Not Set'
+                  )}
+                </div>
+                {!leetcodeUsername && (
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    Configure User ID in Settings
+                  </div>
+                )}
               </div>
             </div>
 
@@ -832,11 +893,48 @@ const StudentDashboard = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email Address</span>
-                <div style={{ fontWeight: '600', marginTop: '4px' }}>{user?.email}</div>
+                <div style={{ fontWeight: '600', marginTop: '4px', fontSize: '0.9rem' }}>{user?.email}</div>
               </div>
+
               <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mobile Phone Number</span>
-                <div style={{ fontWeight: '700', marginTop: '4px', color: 'var(--accent-secondary)' }}>+91 98765 43210</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mobile Phone Number</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setEditingMobile(!editingMobile)} 
+                    style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
+                  >
+                    {editingMobile ? 'Cancel' : 'Edit'}
+                  </button>
+                </div>
+
+                {editingMobile ? (
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      style={{ padding: '6px 10px', fontSize: '0.85rem' }} 
+                      value={tempMobile} 
+                      onChange={(e) => setTempMobile(e.target.value)} 
+                    />
+                    <button 
+                      type="button" 
+                      className="btn btn-primary btn-sm" 
+                      onClick={() => {
+                        setMobilePhone(tempMobile);
+                        localStorage.setItem('student_profile_mobile', tempMobile);
+                        setEditingMobile(false);
+                        showToast('Mobile phone number updated!', 'success');
+                      }}
+                    >
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ fontWeight: '700', marginTop: '4px', color: 'var(--accent-secondary)', fontSize: '1rem' }}>
+                    {mobilePhone}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1305,6 +1403,87 @@ const StudentDashboard = () => {
         <div className="card col-span-12" style={{ maxWidth: '650px', margin: '0 auto' }}>
           <h3>App Settings & Preferences</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
+            {/* Student Contact & Coding Handle Settings */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--accent-primary)' }}>
+              <h4 style={{ fontWeight: '700', marginBottom: '8px' }}>Student Profile & Coding Handles</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '14px' }}>
+                Configure your mobile phone contact number and LeetCode handle to fetch live contest rankings.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Mobile Phone Number</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="e.g. +91 98765 43210" 
+                      value={tempMobile} 
+                      onChange={(e) => setTempMobile(e.target.value)} 
+                    />
+                    <button 
+                      type="button" 
+                      className="btn btn-primary btn-sm" 
+                      onClick={() => {
+                        setMobilePhone(tempMobile);
+                        localStorage.setItem('student_profile_mobile', tempMobile);
+                        showToast('Mobile number updated successfully!', 'success');
+                      }}
+                    >
+                      Save Mobile
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">LeetCode User ID / Handle</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="Enter LeetCode Username (e.g. tourist)" 
+                      value={tempLeetcodeUser} 
+                      onChange={(e) => setTempLeetcodeUser(e.target.value)} 
+                    />
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary btn-sm" 
+                      disabled={loadingLeetcode}
+                      onClick={() => {
+                        const trimmed = tempLeetcodeUser.trim();
+                        setLeetcodeUsername(trimmed);
+                        localStorage.setItem('student_leetcode_username', trimmed);
+                        if (trimmed) {
+                          fetchLeetcodeStats(trimmed);
+                          showToast(`Fetching live LeetCode stats for "${trimmed}"...`, 'info');
+                        } else {
+                          setLeetcodeStats(null);
+                          showToast('LeetCode username cleared.', 'info');
+                        }
+                      }}
+                    >
+                      {loadingLeetcode ? 'Fetching...' : 'Fetch & Save Rank'}
+                    </button>
+                  </div>
+                </div>
+
+                {leetcodeStats && (
+                  <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', fontSize: '0.85rem' }}>
+                    {leetcodeStats.ranking ? (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <strong style={{ color: 'var(--color-present)' }}>Live Rank: {leetcodeStats.ranking}</strong>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{leetcodeStats.totalSolved} / {leetcodeStats.totalQuestions} Solved</div>
+                        </div>
+                        <span className="badge badge-present">{leetcodeStats.acceptanceRate}% Acceptance</span>
+                      </div>
+                    ) : (
+                      <span style={{ color: 'var(--color-absent)' }}>⚠️ {leetcodeStats.error}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
             {/* Visual Theme selector */}
             <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
               <h4 style={{ fontWeight: '700', marginBottom: '8px' }}>Visual Theme</h4>
