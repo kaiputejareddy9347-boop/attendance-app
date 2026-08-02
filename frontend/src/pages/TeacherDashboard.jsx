@@ -169,11 +169,13 @@ const TeacherDashboard = () => {
     // 1. Subjects
     try {
       const subRes = await axios.get('/api/teacher/subjects');
-      setSubjects(subRes.data);
-      if (subRes.data.length > 0) {
-        setSelectedSubjectId(subRes.data[0].id);
-        if (subRes.data[0].timetable && subRes.data[0].timetable.length > 0) {
-          fetchClassStudents(subRes.data[0].timetable[0].classId, subRes.data[0].id);
+      if (Array.isArray(subRes.data)) {
+        setSubjects(subRes.data);
+        if (subRes.data.length > 0) {
+          setSelectedSubjectId(subRes.data[0].id);
+          if (subRes.data[0].timetable && subRes.data[0].timetable.length > 0) {
+            fetchClassStudents(subRes.data[0].timetable[0].classId, subRes.data[0].id);
+          }
         }
       }
     } catch (err) {
@@ -183,7 +185,9 @@ const TeacherDashboard = () => {
     // 2. Timetable
     try {
       const ttRes = await axios.get('/api/teacher/timetable');
-      setTimetable(ttRes.data);
+      if (Array.isArray(ttRes.data)) {
+        setTimetable(ttRes.data);
+      }
     } catch (err) {
       console.error('Error fetching teacher timetable', err);
     }
@@ -191,7 +195,9 @@ const TeacherDashboard = () => {
     // 3. Classes
     try {
       const clsRes = await axios.get('/api/teacher/classes');
-      setClasses(clsRes.data);
+      if (Array.isArray(clsRes.data)) {
+        setClasses(clsRes.data);
+      }
     } catch (err) {
       console.error('Error fetching teacher classes', err);
     }
@@ -199,7 +205,9 @@ const TeacherDashboard = () => {
     // 4. Fees
     try {
       const feeRes = await axios.get('/api/teacher/fees');
-      setFees(feeRes.data);
+      if (Array.isArray(feeRes.data)) {
+        setFees(feeRes.data);
+      }
     } catch (err) {
       console.error('Error fetching teacher fees', err);
     }
@@ -207,7 +215,9 @@ const TeacherDashboard = () => {
     // 5. Exams
     try {
       const examRes = await axios.get('/api/teacher/exams');
-      setExams(examRes.data);
+      if (Array.isArray(examRes.data)) {
+        setExams(examRes.data);
+      }
     } catch (err) {
       console.error('Error fetching teacher exams', err);
     }
@@ -215,7 +225,9 @@ const TeacherDashboard = () => {
     // 6. Holidays
     try {
       const holRes = await axios.get('/api/teacher/holidays');
-      setHolidays(holRes.data);
+      if (Array.isArray(holRes.data)) {
+        setHolidays(holRes.data);
+      }
     } catch (err) {
       console.error('Error fetching teacher holidays', err);
     }
@@ -223,7 +235,9 @@ const TeacherDashboard = () => {
     // 7. History
     try {
       const histRes = await axios.get('/api/teacher/attendance-history');
-      setHistory(histRes.data);
+      if (Array.isArray(histRes.data)) {
+        setHistory(histRes.data);
+      }
     } catch (err) {
       console.error('Error fetching teacher history', err);
     }
@@ -231,7 +245,9 @@ const TeacherDashboard = () => {
     // 8. Leaves
     try {
       const leavesRes = await axios.get('/api/teacher/leaves');
-      setLeaves(leavesRes.data);
+      if (Array.isArray(leavesRes.data)) {
+        setLeaves(leavesRes.data);
+      }
     } catch (err) {
       console.error('Error fetching teacher leaves', err);
     }
@@ -453,10 +469,6 @@ const TeacherDashboard = () => {
     return days[dayNum] || 'Unknown';
   };
 
-  // Filter lectures for the selected date's day of the week
-  const selectedDayNum = getWeekDayNumber(date);
-  const scheduledTodaySlots = timetable.filter(slot => slot.dayOfWeek === selectedDayNum);
-
   if (!user) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -464,6 +476,11 @@ const TeacherDashboard = () => {
       </div>
     );
   }
+
+  // Filter lectures for the selected date's day of the week
+  const selectedDayNum = getWeekDayNumber(date);
+  const safeTimetable = Array.isArray(timetable) ? timetable : [];
+  const scheduledTodaySlots = safeTimetable.filter(slot => slot && slot.dayOfWeek === selectedDayNum);
 
   return (
     <div className="app-container" style={{ padding: '0px' }}>
