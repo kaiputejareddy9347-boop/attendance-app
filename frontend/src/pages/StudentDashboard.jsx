@@ -5,6 +5,19 @@ import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { Award, Calendar, FileText, Send, CheckCircle, Clock, AlertTriangle, Bell, Check, BookOpen, MapPin, ShieldAlert, CreditCard, IndianRupee, Layers, Settings, Landmark } from 'lucide-react';
 
+const DEFAULT_STUDENT_TIMETABLE = [
+  { id: 'tt-1', dayOfWeek: 1, startTime: '09:00 AM', endTime: '10:00 AM', room: 'Lab 301', subject: { id: 's1', code: 'CS301', name: 'Data Structures & Algorithms', teacher: { user: { name: 'Dr. A. Sharma' } } } },
+  { id: 'tt-2', dayOfWeek: 1, startTime: '10:15 AM', endTime: '11:15 AM', room: 'LH 102', subject: { id: 's2', code: 'CS302', name: 'Object Oriented Programming', teacher: { user: { name: 'Prof. R. Verma' } } } },
+  { id: 'tt-3', dayOfWeek: 2, startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH 201', subject: { id: 's3', code: 'CS303', name: 'Database Management Systems', teacher: { user: { name: 'Dr. M. Patel' } } } },
+  { id: 'tt-4', dayOfWeek: 2, startTime: '11:30 AM', endTime: '12:30 PM', room: 'Lab 402', subject: { id: 's4', code: 'CS304', name: 'Web Technology & Frameworks', teacher: { user: { name: 'Prof. S. Nair' } } } },
+  { id: 'tt-5', dayOfWeek: 3, startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH 105', subject: { id: 's5', code: 'CS305', name: 'Operating Systems & Kernels', teacher: { user: { name: 'Dr. A. Sharma' } } } },
+  { id: 'tt-6', dayOfWeek: 3, startTime: '02:00 PM', endTime: '03:00 PM', room: 'LH 202', subject: { id: 's1', code: 'CS301', name: 'Data Structures & Algorithms', teacher: { user: { name: 'Dr. A. Sharma' } } } },
+  { id: 'tt-7', dayOfWeek: 4, startTime: '10:00 AM', endTime: '11:00 AM', room: 'Lab 301', subject: { id: 's4', code: 'CS304', name: 'Web Technology & Frameworks', teacher: { user: { name: 'Prof. S. Nair' } } } },
+  { id: 'tt-8', dayOfWeek: 4, startTime: '01:30 PM', endTime: '02:30 PM', room: 'LH 102', subject: { id: 's3', code: 'CS303', name: 'Database Management Systems', teacher: { user: { name: 'Dr. M. Patel' } } } },
+  { id: 'tt-9', dayOfWeek: 5, startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH 303', subject: { id: 's5', code: 'CS305', name: 'Operating Systems & Kernels', teacher: { user: { name: 'Dr. A. Sharma' } } } },
+  { id: 'tt-10', dayOfWeek: 5, startTime: '11:00 AM', endTime: '12:00 PM', room: 'Lab 101', subject: { id: 's2', code: 'CS302', name: 'Object Oriented Programming', teacher: { user: { name: 'Prof. R. Verma' } } } }
+];
+
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -16,8 +29,8 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   
-  // Custom features lists
-  const [timetable, setTimetable] = useState([]);
+  // Custom features lists - Initialized with default timetable so it is NEVER blank
+  const [timetable, setTimetable] = useState(DEFAULT_STUDENT_TIMETABLE);
   const [exams, setExams] = useState([]);
   const [holidays, setHolidays] = useState([]);
   const [fees, setFees] = useState([]);
@@ -183,30 +196,17 @@ const StudentDashboard = () => {
     }
   };
 
-  const getFallbackTimetable = () => [
-    { id: 'tt-1', dayOfWeek: 1, startTime: '09:00 AM', endTime: '10:00 AM', room: 'Lab 301', subject: { id: 's1', code: 'CS301', name: 'Data Structures & Algorithms', teacher: { user: { name: 'Dr. A. Sharma' } } } },
-    { id: 'tt-2', dayOfWeek: 1, startTime: '10:15 AM', endTime: '11:15 AM', room: 'LH 102', subject: { id: 's2', code: 'CS302', name: 'Object Oriented Programming', teacher: { user: { name: 'Prof. R. Verma' } } } },
-    { id: 'tt-3', dayOfWeek: 2, startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH 201', subject: { id: 's3', code: 'CS303', name: 'Database Management Systems', teacher: { user: { name: 'Dr. M. Patel' } } } },
-    { id: 'tt-4', dayOfWeek: 2, startTime: '11:30 AM', endTime: '12:30 PM', room: 'Lab 402', subject: { id: 's4', code: 'CS304', name: 'Web Technology & Frameworks', teacher: { user: { name: 'Prof. S. Nair' } } } },
-    { id: 'tt-5', dayOfWeek: 3, startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH 105', subject: { id: 's5', code: 'CS305', name: 'Operating Systems & Kernels', teacher: { user: { name: 'Dr. A. Sharma' } } } },
-    { id: 'tt-6', dayOfWeek: 3, startTime: '02:00 PM', endTime: '03:00 PM', room: 'LH 202', subject: { id: 's1', code: 'CS301', name: 'Data Structures & Algorithms', teacher: { user: { name: 'Dr. A. Sharma' } } } },
-    { id: 'tt-7', dayOfWeek: 4, startTime: '10:00 AM', endTime: '11:00 AM', room: 'Lab 301', subject: { id: 's4', code: 'CS304', name: 'Web Technology & Frameworks', teacher: { user: { name: 'Prof. S. Nair' } } } },
-    { id: 'tt-8', dayOfWeek: 4, startTime: '01:30 PM', endTime: '02:30 PM', room: 'LH 102', subject: { id: 's3', code: 'CS303', name: 'Database Management Systems', teacher: { user: { name: 'Dr. M. Patel' } } } },
-    { id: 'tt-9', dayOfWeek: 5, startTime: '09:00 AM', endTime: '10:00 AM', room: 'LH 303', subject: { id: 's5', code: 'CS305', name: 'Operating Systems & Kernels', teacher: { user: { name: 'Dr. A. Sharma' } } } },
-    { id: 'tt-10', dayOfWeek: 5, startTime: '11:00 AM', endTime: '12:00 PM', room: 'Lab 101', subject: { id: 's2', code: 'CS302', name: 'Object Oriented Programming', teacher: { user: { name: 'Prof. R. Verma' } } } }
-  ];
-
   const fetchAdditionalData = async () => {
     try {
       const timetableRes = await axios.get('/api/student/timetable');
       if (Array.isArray(timetableRes.data) && timetableRes.data.length > 0) {
         setTimetable(timetableRes.data);
       } else {
-        setTimetable(getFallbackTimetable());
+        setTimetable(DEFAULT_STUDENT_TIMETABLE);
       }
     } catch (err) {
       console.error('Error fetching student timetable', err);
-      setTimetable(getFallbackTimetable());
+      setTimetable(DEFAULT_STUDENT_TIMETABLE);
     }
 
     try {
