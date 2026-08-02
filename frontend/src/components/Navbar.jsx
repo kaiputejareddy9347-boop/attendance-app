@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User, Award, Bell, Check, Calculator, Landmark } from 'lucide-react';
+import { LogOut, ClipboardCheck, LayoutDashboard, Clock, FileText, History, Settings, Menu, X, Calendar, Layers, BookOpen, CreditCard, User, Award, Bell, Check, Calculator, Landmark, GraduationCap, Sun, Moon, MessageSquare, Compass, Users } from 'lucide-react';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -12,6 +12,21 @@ const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [themeMode, setThemeMode] = useState(() => localStorage.getItem('theme_mode') || 'dark');
+
+  const toggleThemeMode = () => {
+    const nextTheme = themeMode === 'dark' ? 'light' : 'dark';
+    setThemeMode(nextTheme);
+    localStorage.setItem('theme_mode', nextTheme);
+  };
+
+  useEffect(() => {
+    if (themeMode === 'light') {
+      document.body.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
+    }
+  }, [themeMode]);
 
   const fetchNotifications = async () => {
     try {
@@ -81,10 +96,19 @@ const Navbar = () => {
           <Menu size={20} />
         </button>
         <Link to="/" className="mobile-header-brand">
-          <ClipboardCheck size={20} style={{ color: 'var(--accent-primary)' }} />
+          <GraduationCap size={22} style={{ color: 'var(--accent-secondary)' }} />
           <span style={{ fontSize: '0.95rem', fontWeight: 800 }}>{collegeConfig ? collegeConfig.code : 'Attendance'}</span>
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {/* Theme Mode Toggle Button */}
+          <button
+            onClick={toggleThemeMode}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '6px' }}
+            title={themeMode === 'dark' ? 'Switch to Bright Light Mode' : 'Switch to Dark Mode'}
+          >
+            {themeMode === 'dark' ? <Sun size={18} style={{ color: '#f59e0b' }} /> : <Moon size={18} style={{ color: '#6366f1' }} />}
+          </button>
+
           {/* Notification Bell */}
           <div style={{ position: 'relative' }}>
             <button 
@@ -190,11 +214,11 @@ const Navbar = () => {
       {/* Sidebar Navigation Drawer */}
       <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Brand header */}
+          {/* Brand header with College Symbol */}
           <div className="sidebar-brand">
-            <ClipboardCheck size={24} style={{ color: 'var(--accent-primary)' }} />
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {collegeConfig ? collegeConfig.name : 'AttendancePortal'}
+            <GraduationCap size={26} style={{ color: 'var(--accent-secondary)' }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 800 }}>
+              {collegeConfig ? collegeConfig.name : 'Attendance Portal'}
             </span>
             {sidebarOpen && (
               <button 
@@ -250,6 +274,18 @@ const Navbar = () => {
                   <Calendar size={18} style={{ color: 'var(--accent-primary)' }} />
                   <span>Holiday Recess</span>
                 </Link>
+                <Link to="/dashboard?tab=events" className={`sidebar-link ${isActive('/dashboard', 'events') ? 'active' : ''}`}>
+                  <Compass size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Campus Events</span>
+                </Link>
+                <Link to="/dashboard?tab=clubs" className={`sidebar-link ${isActive('/dashboard', 'clubs') ? 'active' : ''}`}>
+                  <Users size={18} style={{ color: '#10b981' }} />
+                  <span>Student Clubs</span>
+                </Link>
+                <Link to="/dashboard?tab=feedback" className={`sidebar-link ${isActive('/dashboard', 'feedback') ? 'active' : ''}`}>
+                  <MessageSquare size={18} style={{ color: '#f59e0b' }} />
+                  <span>Feedback</span>
+                </Link>
                 <Link to="/dashboard?tab=settings" className={`sidebar-link ${isActive('/dashboard', 'settings') ? 'active' : ''}`}>
                   <Settings size={18} style={{ color: 'var(--accent-secondary)' }} />
                   <span>Settings</span>
@@ -287,6 +323,14 @@ const Navbar = () => {
                   <FileText size={18} />
                   <span>Leave Requests</span>
                 </Link>
+                <Link to="/teacher/dashboard?tab=events" className={`sidebar-link ${isActive('/teacher/dashboard', 'events') ? 'active' : ''}`}>
+                  <Compass size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Campus Events</span>
+                </Link>
+                <Link to="/teacher/dashboard?tab=feedback" className={`sidebar-link ${isActive('/teacher/dashboard', 'feedback') ? 'active' : ''}`}>
+                  <MessageSquare size={18} style={{ color: '#f59e0b' }} />
+                  <span>Feedback</span>
+                </Link>
                 <Link to="/teacher/dashboard?tab=settings" className={`sidebar-link ${isActive('/teacher/dashboard', 'settings') ? 'active' : ''}`}>
                   <Settings size={18} style={{ color: 'var(--accent-secondary)' }} />
                   <span>Settings</span>
@@ -316,6 +360,14 @@ const Navbar = () => {
                   <Calendar size={18} />
                   <span>Holiday Recess</span>
                 </Link>
+                <Link to="/admin/dashboard?tab=events" className={`sidebar-link ${isActive('/admin/dashboard', 'events') ? 'active' : ''}`}>
+                  <Compass size={18} style={{ color: 'var(--accent-secondary)' }} />
+                  <span>Campus Events</span>
+                </Link>
+                <Link to="/admin/dashboard?tab=feedback" className={`sidebar-link ${isActive('/admin/dashboard', 'feedback') ? 'active' : ''}`}>
+                  <MessageSquare size={18} style={{ color: '#f59e0b' }} />
+                  <span>Feedbacks Log</span>
+                </Link>
                 <Link to="/admin/dashboard?tab=fees" className={`sidebar-link ${isActive('/admin/dashboard', 'fees') ? 'active' : ''}`}>
                   <CreditCard size={18} />
                   <span>Fee Dues</span>
@@ -332,8 +384,16 @@ const Navbar = () => {
             )}
           </nav>
 
-          {/* Sidebar Footer Logout */}
-          <div className="sidebar-footer">
+          {/* Sidebar Footer Logout & Theme Switcher */}
+          <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button
+              onClick={toggleThemeMode}
+              className="btn btn-secondary btn-sm"
+              style={{ width: '100%', justifyContent: 'center', gap: '8px' }}
+            >
+              {themeMode === 'dark' ? <Sun size={16} style={{ color: '#f59e0b' }} /> : <Moon size={16} style={{ color: '#6366f1' }} />}
+              <span>{themeMode === 'dark' ? 'Bright Light Mode' : 'Dark Mode'}</span>
+            </button>
             <button onClick={handleLogout} className="sidebar-logout-btn">
               <LogOut size={16} />
               <span>Logout</span>

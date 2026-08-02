@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate as useNav } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { User, Mail, Lock, ClipboardCheck, Award, Briefcase, GraduationCap } from 'lucide-react';
+import { User, Mail, Lock, ClipboardCheck, Award, Briefcase, GraduationCap, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState('STUDENT');
   
   // Student-specific fields
@@ -134,14 +135,31 @@ const Register = () => {
               <Lock size={18} style={{ position: 'absolute', left: '14px', top: '14px', color: 'var(--text-muted)' }} />
               <input
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 className="form-input"
-                style={{ paddingLeft: '44px' }}
+                style={{ paddingLeft: '44px', paddingRight: '44px' }}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '12px',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 

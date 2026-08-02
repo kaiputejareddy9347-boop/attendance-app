@@ -527,34 +527,47 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {/* TAB 2: COURSES LIST */}
+      {/* TAB 2: COURSES LIST & UNIT-WISE STUDY NOTES */}
       {activeTab === 'COURSES' && (
         <div className="card col-span-12">
-          <h3>Registered Course Subjects</h3>
+          <h3>Registered Course Subjects & Unit Notes</h3>
           {breakdown.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>No subjects found.</p>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className="attendance-list">
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Name</th>
-                    <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Subject Code</th>
-                    <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester</th>
-                    <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Lecturer</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {breakdown.map((subj) => (
-                    <tr key={subj.subjectId} className="attendance-row">
-                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{subj.subjectName}</td>
-                      <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{subj.subjectCode}</td>
-                      <td className="attendance-cell" style={{ textAlign: 'center', fontWeight: '600' }}>Sem {studentClass.semester}</td>
-                      <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '500' }}>{subj.teacherName}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
+              {breakdown.map((subj) => (
+                <div key={subj.subjectId} style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '1.1rem', fontWeight: '700' }}>{subj.subjectName}</h4>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)', marginTop: '2px' }}>
+                        Code: {subj.subjectCode} | Lecturer: {subj.teacherName}
+                      </div>
+                    </div>
+                    <span className="badge badge-present">Active Course</span>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px' }}>
+                      📚 Unit-wise Study PDFs & Notes:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                      {['Unit 1: Fundamentals & Concepts', 'Unit 2: Architecture & Analysis', 'Unit 3: Implementation & Design', 'Unit 4: Advanced Systems', 'Unit 5: Exam Question Bank'].map((unit, idx) => (
+                        <button
+                          key={unit}
+                          type="button"
+                          onClick={() => showToast(`Downloading ${subj.subjectCode}_${unit.split(':')[0]}.pdf...`, 'info')}
+                          className="btn btn-secondary btn-sm"
+                          style={{ justifyContent: 'flex-start', textAlign: 'left', fontSize: '0.775rem', gap: '8px' }}
+                        >
+                          <span>📄</span>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{unit}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -876,21 +889,40 @@ const StudentDashboard = () => {
 
       {/* TAB 9: PROFILE */}
       {activeTab === 'PROFILE' && (
-        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+        <div className="card col-span-12" style={{ maxWidth: '650px', margin: '0 auto', textAlign: 'center' }}>
           <div className="profile-avatar" style={{ margin: '0 auto 20px', width: '80px', height: '80px', fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%)' }}>
             {user?.name?.charAt(0) || 'S'}
           </div>
           <h3 style={{ marginBottom: '16px' }}>Student Profile</h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Cumulative CGPA</span>
+                <div style={{ fontWeight: '800', fontSize: '1.4rem', marginTop: '4px', color: 'var(--accent-primary)' }}>8.75 / 10.0</div>
+              </div>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>LeetCode Global Rank</span>
+                <div style={{ fontWeight: '800', fontSize: '1.25rem', marginTop: '4px', color: 'var(--color-present)' }}>#34,120 (Knight)</div>
+              </div>
+            </div>
+
             <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Full Name</span>
               <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>{user?.name}</div>
             </div>
-            <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email Address</span>
-              <div style={{ fontWeight: '600', marginTop: '4px' }}>{user?.email}</div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email Address</span>
+                <div style={{ fontWeight: '600', marginTop: '4px' }}>{user?.email}</div>
+              </div>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mobile Phone Number</span>
+                <div style={{ fontWeight: '700', marginTop: '4px', color: 'var(--accent-secondary)' }}>+91 98765 43210</div>
+              </div>
             </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Roll Number</span>
@@ -898,16 +930,109 @@ const StudentDashboard = () => {
               </div>
               <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Current Semester</span>
-                <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>Semester {studentClass?.semester || 1}</div>
+                <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>Semester {studentClassInfo?.semester || 1}</div>
               </div>
             </div>
             <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Class Group / Department</span>
               <div style={{ fontWeight: '600', marginTop: '4px' }}>
-                {studentClass?.name} ({studentClass?.department})
+                {studentClassInfo?.name} ({studentClassInfo?.department})
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TAB: CAMPUS EVENTS */}
+      {activeTab === 'EVENTS' && (
+        <div className="card col-span-12">
+          <h3>Campus Events & Fests Schedule</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px', marginTop: '16px' }}>
+            <div style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--accent-secondary)', fontWeight: '700' }}>TECHNICAL FEST 2026</div>
+              <h4 style={{ fontSize: '1.15rem', marginTop: '4px' }}>National Hackathon & AI Summit</h4>
+              <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '8px 0' }}>24-Hour continuous coding hackathon with industry prizes.</p>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>📅 Date: Aug 15, 2026 | Venue: Main Auditorium</div>
+              <button type="button" onClick={() => showToast('Registered for National Hackathon!', 'success')} className="btn btn-primary btn-sm" style={{ width: '100%', marginTop: '12px' }}>Register Now</button>
+            </div>
+
+            <div style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-present)', fontWeight: '700' }}>CULTURAL FEST</div>
+              <h4 style={{ fontSize: '1.15rem', marginTop: '4px' }}>Annual Music & Dance Night</h4>
+              <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '8px 0' }}>Inter-departmental music, dance, and drama competitions.</p>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>📅 Date: Sep 02, 2026 | Venue: Open Air Theatre</div>
+              <button type="button" onClick={() => showToast('Passes claimed for Annual Music Night!', 'success')} className="btn btn-primary btn-sm" style={{ width: '100%', marginTop: '12px' }}>Claim Student Pass</button>
+            </div>
+
+            <div style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-late)', fontWeight: '700' }}>SPORTS LEAGUE</div>
+              <h4 style={{ fontSize: '1.15rem', marginTop: '4px' }}>Inter-College Cricket Tournament</h4>
+              <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '8px 0' }}>Inter-branch T20 cricket championship league matches.</p>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>📅 Date: Sep 20, 2026 | Venue: College Sports Ground</div>
+              <button type="button" onClick={() => showToast('Applied for Cricket Team Tryouts!', 'success')} className="btn btn-primary btn-sm" style={{ width: '100%', marginTop: '12px' }}>Apply Team Tryouts</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: STUDENT CLUBS RECRUITMENT */}
+      {activeTab === 'CLUBS' && (
+        <div className="card col-span-12">
+          <h3>Student Clubs & Recruitment Drive</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px', marginTop: '16px' }}>
+            {[
+              { name: 'Coding & Competitive Programming Club', icon: '💻', desc: 'DSA, LeetCode, and ICPC contest preparation group.' },
+              { name: 'Robotics & Automation Society', icon: '🤖', desc: 'IoT, hardware tinkering, and drone building club.' },
+              { name: 'IEEE Student Branch Chapter', icon: '🌐', desc: 'Research papers, workshops, and international conferences.' },
+              { name: 'Fine Arts & Drama Society', icon: '🎭', desc: 'Theatre, stage performances, street plays, and art.' }
+            ].map(club => (
+              <div key={club.name} style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>{club.icon}</div>
+                <h4 style={{ fontSize: '1.1rem' }}>{club.name}</h4>
+                <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '8px 0' }}>{club.desc}</p>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
+                  <button type="button" onClick={() => showToast(`Applied as Volunteer for ${club.name}!`, 'success')} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Volunteer</button>
+                  <button type="button" onClick={() => showToast(`Applied as Coordinator for ${club.name}!`, 'success')} className="btn btn-primary btn-sm" style={{ flex: 1 }}>Coordinator</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB: FEEDBACK */}
+      {activeTab === 'FEEDBACK' && (
+        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <h3>Submit Feedback & Suggestions</h3>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            showToast('Thank you! Your feedback has been submitted to portal admin.', 'success');
+          }}>
+            <div className="form-group" style={{ marginTop: '16px' }}>
+              <label className="form-label">Category</label>
+              <select className="form-select" defaultValue="Academic">
+                <option value="Academic">Academic Curriculum & Lectures</option>
+                <option value="Portal">Portal UI & Feature Request</option>
+                <option value="Infrastructure">College Infrastructure & Labs</option>
+                <option value="General">General Suggestion</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Rating (1 to 5 Stars)</label>
+              <select className="form-select" defaultValue="5">
+                <option value="5">⭐⭐⭐⭐⭐ 5 Stars (Excellent)</option>
+                <option value="4">⭐⭐⭐⭐ 4 Stars (Good)</option>
+                <option value="3">⭐⭐⭐ 3 Stars (Average)</option>
+                <option value="2">⭐⭐ 2 Stars (Needs Improvement)</option>
+                <option value="1">⭐ 1 Star (Poor)</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Comments / Details</label>
+              <textarea className="form-textarea" rows="4" placeholder="Describe your feedback or suggestion..." required />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Submit Feedback</button>
+          </form>
         </div>
       )}
 

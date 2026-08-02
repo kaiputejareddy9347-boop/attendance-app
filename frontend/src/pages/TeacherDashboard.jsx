@@ -704,38 +704,47 @@ const TeacherDashboard = () => {
         </div>
       )}
 
-      {/* TAB 3: ASSIGNED COURSES */}
+      {/* TAB 3: ASSIGNED COURSES & UNIT PDF MANAGER */}
       {activeTab === 'COURSES' && (
         <div className="card col-span-12">
-          <h3>My Assigned Course Subjects</h3>
+          <h3>My Assigned Course Subjects & Study PDF Manager</h3>
           {subjects.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>No courses assigned to your profile.</p>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className="attendance-list">
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Course Title</th>
-                    <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--text-muted)' }}>Code</th>
-                    <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--text-muted)' }}>Type</th>
-                    <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--text-muted)' }}>Semester Level</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subjects.map((sub) => (
-                    <tr key={sub.id} className="attendance-row">
-                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{sub.name}</td>
-                      <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{sub.code}</td>
-                      <td className="attendance-cell" style={{ textAlign: 'center' }}>
-                        <span className={`badge badge-${sub.type?.toLowerCase() === 'lab' ? 'absent' : 'present'}`}>
-                          {sub.type || 'THEORY'}
-                        </span>
-                      </td>
-                      <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '600' }}>Semester {sub.semester}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
+              {subjects.map((sub) => (
+                <div key={sub.id} style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '1.1rem', fontWeight: '700' }}>{sub.name}</h4>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)', marginTop: '2px' }}>
+                        Code: {sub.code} | Semester {sub.semester} | Type: {sub.type || 'THEORY'}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => showToast(`Attached new PDF note for ${sub.code}`, 'success')}
+                      className="btn btn-primary btn-sm"
+                    >
+                      + Upload Unit PDF
+                    </button>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px' }}>
+                      Attached Unit Notes for Students (Unit 1 to 5):
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '10px' }}>
+                      {['Unit 1: Foundations & Syllabus', 'Unit 2: Lecture Slides & Diagrams', 'Unit 3: Mid-Sem Practice Problems', 'Unit 4: Advanced Systems Notes', 'Unit 5: Final Exam Question Bank'].map((unit) => (
+                        <div key={unit} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', fontSize: '0.775rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📄 {unit}</span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--color-present)', fontWeight: '700' }}>Uploaded</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -1462,6 +1471,56 @@ const TeacherDashboard = () => {
               </select>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TAB: CAMPUS EVENTS */}
+      {activeTab === 'EVENTS' && (
+        <div className="card col-span-12">
+          <h3>Campus Events & Faculty Duty Calendar</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px', marginTop: '16px' }}>
+            <div style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--accent-secondary)', fontWeight: '700' }}>TECHNICAL FEST 2026</div>
+              <h4 style={{ fontSize: '1.15rem', marginTop: '4px' }}>National Hackathon & AI Summit</h4>
+              <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '8px 0' }}>Faculty Jury & Evaluation Panel Assignment.</p>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>📅 Date: Aug 15, 2026 | Venue: Main Auditorium</div>
+              <button type="button" onClick={() => showToast('Jury Panel duty accepted!', 'success')} className="btn btn-primary btn-sm" style={{ width: '100%', marginTop: '12px' }}>Confirm Jury Duty</button>
+            </div>
+
+            <div style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-present)', fontWeight: '700' }}>CULTURAL FEST</div>
+              <h4 style={{ fontSize: '1.15rem', marginTop: '4px' }}>Annual Music & Dance Night</h4>
+              <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '8px 0' }}>Faculty Coordination & Discipline Committee.</p>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>📅 Date: Sep 02, 2026 | Venue: Open Air Theatre</div>
+              <button type="button" onClick={() => showToast('Faculty Pass issued!', 'success')} className="btn btn-primary btn-sm" style={{ width: '100%', marginTop: '12px' }}>Issue VIP Pass</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: FEEDBACK */}
+      {activeTab === 'FEEDBACK' && (
+        <div className="card col-span-12" style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <h3>Submit Faculty Feedback & Infrastructure Request</h3>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            showToast('Thank you! Your feedback has been submitted to portal admin.', 'success');
+          }}>
+            <div className="form-group" style={{ marginTop: '16px' }}>
+              <label className="form-label">Category</label>
+              <select className="form-select" defaultValue="Infrastructure">
+                <option value="Infrastructure">Lab Equipment & Projector Maintenance</option>
+                <option value="Academic">Timetable & Slot Conflicts</option>
+                <option value="Portal">Portal UI & Attendance System</option>
+                <option value="General">General Faculty Feedback</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Comments / Details</label>
+              <textarea className="form-textarea" rows="4" placeholder="Provide detailed feedback or report issues..." required />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Submit Feedback</button>
+          </form>
         </div>
       )}
     </div>
