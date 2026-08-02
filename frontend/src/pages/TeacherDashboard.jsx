@@ -42,12 +42,8 @@ const TeacherDashboard = () => {
 
   // Unit PDFs state for assigned subjects
   const [teacherPdfs, setTeacherPdfs] = useState(() => {
-    try {
-      const saved = localStorage.getItem('college_teacher_pdfs');
-      return saved ? JSON.parse(saved) : {};
-    } catch (e) {
-      return {};
-    }
+    const saved = localStorage.getItem('college_teacher_pdfs');
+    return saved ? JSON.parse(saved) : {};
   });
 
   const handleAddPdf = (subjectId, subjectCode) => {
@@ -173,13 +169,11 @@ const TeacherDashboard = () => {
     // 1. Subjects
     try {
       const subRes = await axios.get('/api/teacher/subjects');
-      if (Array.isArray(subRes.data)) {
-        setSubjects(subRes.data);
-        if (subRes.data.length > 0) {
-          setSelectedSubjectId(subRes.data[0].id);
-          if (subRes.data[0].timetable && subRes.data[0].timetable.length > 0) {
-            fetchClassStudents(subRes.data[0].timetable[0].classId, subRes.data[0].id);
-          }
+      setSubjects(subRes.data);
+      if (subRes.data.length > 0) {
+        setSelectedSubjectId(subRes.data[0].id);
+        if (subRes.data[0].timetable && subRes.data[0].timetable.length > 0) {
+          fetchClassStudents(subRes.data[0].timetable[0].classId, subRes.data[0].id);
         }
       }
     } catch (err) {
@@ -189,9 +183,7 @@ const TeacherDashboard = () => {
     // 2. Timetable
     try {
       const ttRes = await axios.get('/api/teacher/timetable');
-      if (Array.isArray(ttRes.data)) {
-        setTimetable(ttRes.data);
-      }
+      setTimetable(ttRes.data);
     } catch (err) {
       console.error('Error fetching teacher timetable', err);
     }
@@ -199,9 +191,7 @@ const TeacherDashboard = () => {
     // 3. Classes
     try {
       const clsRes = await axios.get('/api/teacher/classes');
-      if (Array.isArray(clsRes.data)) {
-        setClasses(clsRes.data);
-      }
+      setClasses(clsRes.data);
     } catch (err) {
       console.error('Error fetching teacher classes', err);
     }
@@ -209,9 +199,7 @@ const TeacherDashboard = () => {
     // 4. Fees
     try {
       const feeRes = await axios.get('/api/teacher/fees');
-      if (Array.isArray(feeRes.data)) {
-        setFees(feeRes.data);
-      }
+      setFees(feeRes.data);
     } catch (err) {
       console.error('Error fetching teacher fees', err);
     }
@@ -219,9 +207,7 @@ const TeacherDashboard = () => {
     // 5. Exams
     try {
       const examRes = await axios.get('/api/teacher/exams');
-      if (Array.isArray(examRes.data)) {
-        setExams(examRes.data);
-      }
+      setExams(examRes.data);
     } catch (err) {
       console.error('Error fetching teacher exams', err);
     }
@@ -229,9 +215,7 @@ const TeacherDashboard = () => {
     // 6. Holidays
     try {
       const holRes = await axios.get('/api/teacher/holidays');
-      if (Array.isArray(holRes.data)) {
-        setHolidays(holRes.data);
-      }
+      setHolidays(holRes.data);
     } catch (err) {
       console.error('Error fetching teacher holidays', err);
     }
@@ -239,9 +223,7 @@ const TeacherDashboard = () => {
     // 7. History
     try {
       const histRes = await axios.get('/api/teacher/attendance-history');
-      if (Array.isArray(histRes.data)) {
-        setHistory(histRes.data);
-      }
+      setHistory(histRes.data);
     } catch (err) {
       console.error('Error fetching teacher history', err);
     }
@@ -249,9 +231,7 @@ const TeacherDashboard = () => {
     // 8. Leaves
     try {
       const leavesRes = await axios.get('/api/teacher/leaves');
-      if (Array.isArray(leavesRes.data)) {
-        setLeaves(leavesRes.data);
-      }
+      setLeaves(leavesRes.data);
     } catch (err) {
       console.error('Error fetching teacher leaves', err);
     }
@@ -276,14 +256,9 @@ const TeacherDashboard = () => {
     setLoadingNotices(true);
     try {
       const res = await axios.get('/api/notices');
-      if (Array.isArray(res.data)) {
-        setNotices(res.data);
-      } else {
-        setNotices([]);
-      }
+      setNotices(res.data);
     } catch (err) {
       console.error('Error fetching notices', err);
-      setNotices([]);
     } finally {
       setLoadingNotices(false);
     }
@@ -298,13 +273,12 @@ const TeacherDashboard = () => {
     setPostingNotice(true);
     try {
       await axios.post('/api/notices', { title: noticeTitle, content: noticeContent });
-      showToast('Announcement published successfully to College Notice Board!', 'success');
+      showToast('Announcement posted successfully.', 'success');
       setNoticeTitle('');
       setNoticeContent('');
       fetchNotices();
     } catch (err) {
-      console.error('Error posting notice', err);
-      showToast('Failed to publish announcement.', 'error');
+      showToast('Failed to post announcement.', 'error');
     } finally {
       setPostingNotice(false);
     }
@@ -317,8 +291,7 @@ const TeacherDashboard = () => {
       showToast('Notice deleted successfully.', 'success');
       fetchNotices();
     } catch (err) {
-      console.error('Error deleting notice', err);
-      showToast('Failed to delete notice.', 'error');
+      showToast('Could not delete notice.', 'error');
     }
   };
 
@@ -451,30 +424,21 @@ const TeacherDashboard = () => {
     return days[dayNum] || 'Unknown';
   };
 
-  if (!user) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>Verifying Faculty Credentials...</div>
-      </div>
-    );
-  }
-
   // Filter lectures for the selected date's day of the week
   const selectedDayNum = getWeekDayNumber(date);
-  const safeTimetable = Array.isArray(timetable) ? timetable : [];
-  const scheduledTodaySlots = safeTimetable.filter(slot => slot && slot.dayOfWeek === selectedDayNum);
+  const scheduledTodaySlots = timetable.filter(slot => slot.dayOfWeek === selectedDayNum);
 
   return (
     <div className="app-container" style={{ padding: '0px' }}>
       {/* Profile Header */}
       <div className="card profile-card" style={{ marginBottom: '24px' }}>
         <div className="profile-avatar" style={{ background: 'linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%)' }}>
-          {user?.name?.charAt(0) || 'T'}
+          {user.name.charAt(0)}
         </div>
         <div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{user?.name || 'Faculty Instructor'}</h2>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{user.name}</h2>
           <p style={{ fontSize: '0.9rem' }}>
-            Faculty Employee ID: <strong style={{ color: '#fff' }}>{user?.teacher?.employeeId || 'N/A'}</strong>
+            Faculty Employee ID: <strong style={{ color: '#fff' }}>{user.teacher?.employeeId || 'N/A'}</strong>
           </p>
         </div>
       </div>
@@ -486,7 +450,7 @@ const TeacherDashboard = () => {
             <div style={{ background: 'var(--accent-primary-glow)', color: 'var(--accent-primary)', padding: '12px', borderRadius: '12px' }}><BookOpen size={24} /></div>
             <div>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Courses Handled</span>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{(Array.isArray(subjects) ? subjects : []).length} Subjects</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{subjects.length} Subjects</div>
             </div>
           </div>
 
@@ -494,7 +458,7 @@ const TeacherDashboard = () => {
             <div style={{ background: 'var(--accent-secondary-glow)', color: 'var(--accent-secondary)', padding: '12px', borderRadius: '12px' }}><Layers size={24} /></div>
             <div>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Classes Taught</span>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{(Array.isArray(classes) ? classes : []).length} Groups</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{classes.length} Groups</div>
             </div>
           </div>
 
@@ -502,25 +466,25 @@ const TeacherDashboard = () => {
             <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-absent)', padding: '12px', borderRadius: '12px' }}><FileText size={24} /></div>
             <div>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Leaves Pending</span>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{(Array.isArray(leaves) ? leaves : []).filter(l => l?.status === 'PENDING').length} Requests</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{leaves.filter(l => l.status === 'PENDING').length} Requests</div>
             </div>
           </div>
 
           {/* invigilations schedule */}
           <div className="card col-span-6">
             <h3>My Course Exams</h3>
-            {(Array.isArray(exams) ? exams : []).length === 0 ? (
+            {exams.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>No exam invigilations assigned.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                {(Array.isArray(exams) ? exams : []).map((ex) => (
-                  <div key={ex.id || Math.random()} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
-                    <div style={{ fontWeight: '600' }}>{ex.name || 'Course Exam'}</div>
+                {exams.map((ex) => (
+                  <div key={ex.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
+                    <div style={{ fontWeight: '600' }}>{ex.name}</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      {ex?.subject?.name || 'Subject'} ({ex?.subject?.code || 'N/A'})
+                      {ex.subject.name} ({ex.subject.code})
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Date: {ex.date ? new Date(ex.date).toLocaleDateString() : 'TBA'} | Time: {ex.startTime || ''} - {ex.endTime || ''} | Venue: {ex.room || 'LH'}
+                      Date: {new Date(ex.date).toLocaleDateString()} | Time: {ex.startTime} - {ex.endTime} | Venue: {ex.room}
                     </div>
                   </div>
                 ))}
@@ -531,91 +495,20 @@ const TeacherDashboard = () => {
           {/* Academic holidays */}
           <div className="card col-span-6">
             <h3>Upcoming College Recess Breaks</h3>
-            {(Array.isArray(holidays) ? holidays : []).length === 0 ? (
+            {holidays.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>No holidays scheduled.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                {(Array.isArray(holidays) ? holidays : []).map((hol) => (
-                  <div key={hol.id || Math.random()} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
-                    <div style={{ fontWeight: '600' }}>{hol.name || 'Recess'}</div>
+                {holidays.map((hol) => (
+                  <div key={hol.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
+                    <div style={{ fontWeight: '600' }}>{hol.name}</div>
                     {hol.description && <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0' }}>"{hol.description}"</p>}
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Duration: {hol.startDate ? new Date(hol.startDate).toLocaleDateString() : 'N/A'} - {hol.endDate ? new Date(hol.endDate).toLocaleDateString() : 'N/A'}
+                      Duration: {new Date(hol.startDate).toLocaleDateString()} - {new Date(hol.endDate).toLocaleDateString()}
                     </div>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-
-          {/* Quick Notice Board & Post Announcement */}
-          <div className="card col-span-8">
-            <h3>Notice Board Announcements</h3>
-            <form onSubmit={handlePostNotice} style={{ marginTop: '14px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="Notice Title (e.g. Special Lecture & Test)" 
-                value={noticeTitle} 
-                onChange={(e) => setNoticeTitle(e.target.value)} 
-                disabled={postingNotice} 
-                required 
-              />
-              <textarea 
-                className="form-textarea" 
-                rows="2" 
-                placeholder="Announcement details..." 
-                value={noticeContent} 
-                onChange={(e) => setNoticeContent(e.target.value)} 
-                disabled={postingNotice} 
-                required 
-              />
-              <button type="submit" className="btn btn-primary btn-sm" disabled={postingNotice}>
-                Publish Announcement
-              </button>
-            </form>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto' }}>
-              {(Array.isArray(notices) ? notices : []).length === 0 ? (
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No announcements posted yet.</p>
-              ) : (
-                (Array.isArray(notices) ? notices : []).map(n => (
-                  <div key={n.id || Math.random()} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <strong style={{ fontSize: '0.9rem' }}>{n.title || 'Announcement'}</strong>
-                      <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{n.content || ''}</p>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>Posted by {n.postedBy || 'Faculty'} • {n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ''}</div>
-                    </div>
-                    <button type="button" onClick={() => handleDeleteNotice(n.id)} className="btn btn-secondary btn-sm" style={{ padding: '4px 8px', color: 'var(--color-absent)' }}>
-                      Delete
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* College Information Card */}
-          <div className="card col-span-4">
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Landmark size={20} style={{ color: 'var(--accent-primary)' }} />
-              College Details
-            </h3>
-            {collegeConfig ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '14px' }}>
-                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>College Name</span>
-                  <div style={{ fontWeight: '700', fontSize: '0.95rem', marginTop: '2px' }}>{collegeConfig.name}</div>
-                </div>
-                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>College Code & Academic Year</span>
-                  <div style={{ fontWeight: '700', fontSize: '0.9rem', color: 'var(--accent-secondary)', marginTop: '2px' }}>
-                    {collegeConfig.code} | {collegeConfig.academicYear}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '8px' }}>Loading college profile...</p>
             )}
           </div>
         </div>
@@ -788,13 +681,8 @@ const TeacherDashboard = () => {
                               <tr key={st.id} className="attendance-row">
                                 <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
                                 <td className="attendance-cell">
-                                  <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                    <span>{st?.user?.name || 'Student'}</span>
-                                    <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-present)', border: '1px solid rgba(16, 185, 129, 0.2)', fontWeight: '700' }}>
-                                      ⚡ LeetCode: #18,450 (Knight)
-                                    </span>
-                                  </div>
-                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{st?.user?.email || 'N/A'}</div>
+                                  <div style={{ fontWeight: '600' }}>{st.user.name}</div>
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{st.user.email}</div>
                                 </td>
                                 <td className="attendance-cell" style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                   <div className="status-selector" style={{ opacity: editable ? 1 : 0.6 }}>
@@ -963,9 +851,9 @@ const TeacherDashboard = () => {
                       daySlots.map(s => (
                         <div key={s.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>{s.startTime} - {s.endTime}</span>
-                          <div style={{ fontWeight: '600', fontSize: '0.9rem', marginTop: '4px' }}>{s.subject?.name || 'Subject'}</div>
+                          <div style={{ fontWeight: '600', fontSize: '0.9rem', marginTop: '4px' }}>{s.subject.name}</div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Class: {s.class?.name || 'N/A'}</span>
+                            <span>Class: {s.class.name}</span>
                             <span style={{ fontWeight: '700' }}>{s.room}</span>
                           </div>
                         </div>
@@ -1000,10 +888,10 @@ const TeacherDashboard = () => {
                 <tbody>
                   {fees.map((f) => (
                     <tr key={f.id} className="attendance-row">
-                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{f.student?.user?.name || 'Student'}</td>
-                      <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{f.student?.rollNumber || 'N/A'}</td>
+                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{f.student.user.name}</td>
+                      <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{f.student.rollNumber}</td>
                       <td className="attendance-cell" style={{ color: 'var(--text-secondary)' }}>{f.description}</td>
-                      <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '700' }}>₹{f.amount ? f.amount.toFixed(2) : '0.00'}</td>
+                      <td className="attendance-cell" style={{ textAlign: 'right', fontWeight: '700' }}>₹{f.amount.toFixed(2)}</td>
                       <td className="attendance-cell" style={{ textAlign: 'right' }}>
                         <span className={`badge ${f.status === 'PAID' ? 'badge-present' : 'badge-absent'}`}>
                           {f.status}
@@ -1039,10 +927,10 @@ const TeacherDashboard = () => {
                   {history.map((log) => (
                     <tr key={log.id} className="attendance-row">
                       <td className="attendance-cell">{new Date(log.date).toLocaleDateString()}</td>
-                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{log.subject?.name || 'Subject'} ({log.subject?.code || 'N/A'})</td>
-                      <td className="attendance-cell">{log.student?.user?.name || 'Student'} ({log.student?.rollNumber || 'N/A'})</td>
+                      <td className="attendance-cell" style={{ fontWeight: '600' }}>{log.subject.name} ({log.subject.code})</td>
+                      <td className="attendance-cell">{log.student.user.name} ({log.student.rollNumber})</td>
                       <td className="attendance-cell" style={{ textAlign: 'right' }}>
-                        <span className={`badge badge-${log.status?.toLowerCase() || 'pending'}`}>
+                        <span className={`badge badge-${log.status.toLowerCase()}`}>
                           {log.status}
                         </span>
                       </td>
@@ -1077,9 +965,9 @@ const TeacherDashboard = () => {
                 }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                      <h4 style={{ fontSize: '1.1rem' }}>{leave.student?.user?.name || 'Student'}</h4>
+                      <h4 style={{ fontSize: '1.1rem' }}>{leave.student.user.name}</h4>
                       <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
-                        Roll: {leave.student?.rollNumber || 'N/A'} | Class: {leave.student?.class?.name || 'N/A'}
+                        Roll: {leave.student.rollNumber} | Class: {leave.student.class.name}
                       </span>
                     </div>
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
