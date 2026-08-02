@@ -313,6 +313,10 @@ const Navbar = () => {
                   <Clock size={18} />
                   <span>Timetables</span>
                 </Link>
+                <Link to="/teacher/dashboard?tab=notice" className={`sidebar-link ${isActive('/teacher/dashboard', 'notice') ? 'active' : ''}`}>
+                  <Bell size={18} style={{ color: 'var(--accent-primary)' }} />
+                  <span>Notice Board</span>
+                </Link>
                 <Link to="/teacher/dashboard?tab=fees" className={`sidebar-link ${isActive('/teacher/dashboard', 'fees') ? 'active' : ''}`}>
                   <CreditCard size={18} />
                   <span>Fee Dues</span>
