@@ -807,12 +807,12 @@ const TeacherDashboard = () => {
                                 <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
                                 <td className="attendance-cell">
                                   <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                    <span>{st.user.name}</span>
+                                    <span>{st?.user?.name || 'Student'}</span>
                                     <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-present)', border: '1px solid rgba(16, 185, 129, 0.2)', fontWeight: '700' }}>
                                       ⚡ LeetCode: #18,450 (Knight)
                                     </span>
                                   </div>
-                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{st.user.email}</div>
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{st?.user?.email || 'N/A'}</div>
                                 </td>
                                 <td className="attendance-cell" style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                   <div className="status-selector" style={{ opacity: editable ? 1 : 0.6 }}>

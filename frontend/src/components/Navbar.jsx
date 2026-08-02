@@ -72,7 +72,8 @@ const Navbar = () => {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const safeNotifications = Array.isArray(notifications) ? notifications : [];
+  const unreadCount = safeNotifications.filter(n => !n.isRead).length;
 
   const isActive = (path, tab = null) => {
     if (tab) {
@@ -161,10 +162,10 @@ const Navbar = () => {
                   </button>
                 </div>
                 <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {notifications.length === 0 ? (
+                  {safeNotifications.length === 0 ? (
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No notifications</p>
                   ) : (
-                    notifications.map(n => (
+                    safeNotifications.map(n => (
                       <div key={n.id} style={{
                         padding: '10px',
                         borderRadius: '8px',
