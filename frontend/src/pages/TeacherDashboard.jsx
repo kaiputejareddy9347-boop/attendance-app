@@ -504,7 +504,7 @@ const TeacherDashboard = () => {
             <div style={{ background: 'var(--accent-primary-glow)', color: 'var(--accent-primary)', padding: '12px', borderRadius: '12px' }}><BookOpen size={24} /></div>
             <div>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Courses Handled</span>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{subjects.length} Subjects</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{(Array.isArray(subjects) ? subjects : []).length} Subjects</div>
             </div>
           </div>
 
@@ -512,7 +512,7 @@ const TeacherDashboard = () => {
             <div style={{ background: 'var(--accent-secondary-glow)', color: 'var(--accent-secondary)', padding: '12px', borderRadius: '12px' }}><Layers size={24} /></div>
             <div>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Classes Taught</span>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{classes.length} Groups</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{(Array.isArray(classes) ? classes : []).length} Groups</div>
             </div>
           </div>
 
@@ -520,25 +520,25 @@ const TeacherDashboard = () => {
             <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-absent)', padding: '12px', borderRadius: '12px' }}><FileText size={24} /></div>
             <div>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Leaves Pending</span>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{leaves.filter(l => l.status === 'PENDING').length} Requests</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{(Array.isArray(leaves) ? leaves : []).filter(l => l?.status === 'PENDING').length} Requests</div>
             </div>
           </div>
 
           {/* invigilations schedule */}
           <div className="card col-span-6">
             <h3>My Course Exams</h3>
-            {exams.length === 0 ? (
+            {(Array.isArray(exams) ? exams : []).length === 0 ? (
               <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>No exam invigilations assigned.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                {exams.map((ex) => (
-                  <div key={ex.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
-                    <div style={{ fontWeight: '600' }}>{ex.name}</div>
+                {(Array.isArray(exams) ? exams : []).map((ex) => (
+                  <div key={ex.id || Math.random()} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
+                    <div style={{ fontWeight: '600' }}>{ex.name || 'Course Exam'}</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      {ex.subject.name} ({ex.subject.code})
+                      {ex?.subject?.name || 'Subject'} ({ex?.subject?.code || 'N/A'})
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Date: {new Date(ex.date).toLocaleDateString()} | Time: {ex.startTime} - {ex.endTime} | Venue: {ex.room}
+                      Date: {ex.date ? new Date(ex.date).toLocaleDateString() : 'TBA'} | Time: {ex.startTime || ''} - {ex.endTime || ''} | Venue: {ex.room || 'LH'}
                     </div>
                   </div>
                 ))}
@@ -549,16 +549,16 @@ const TeacherDashboard = () => {
           {/* Academic holidays */}
           <div className="card col-span-6">
             <h3>Upcoming College Recess Breaks</h3>
-            {holidays.length === 0 ? (
+            {(Array.isArray(holidays) ? holidays : []).length === 0 ? (
               <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>No holidays scheduled.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                {holidays.map((hol) => (
-                  <div key={hol.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
-                    <div style={{ fontWeight: '600' }}>{hol.name}</div>
+                {(Array.isArray(holidays) ? holidays : []).map((hol) => (
+                  <div key={hol.id || Math.random()} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
+                    <div style={{ fontWeight: '600' }}>{hol.name || 'Recess'}</div>
                     {hol.description && <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0' }}>"{hol.description}"</p>}
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Duration: {new Date(hol.startDate).toLocaleDateString()} - {new Date(hol.endDate).toLocaleDateString()}
+                      Duration: {hol.startDate ? new Date(hol.startDate).toLocaleDateString() : 'N/A'} - {hol.endDate ? new Date(hol.endDate).toLocaleDateString() : 'N/A'}
                     </div>
                   </div>
                 ))}
@@ -594,15 +594,15 @@ const TeacherDashboard = () => {
             </form>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto' }}>
-              {notices.length === 0 ? (
+              {(Array.isArray(notices) ? notices : []).length === 0 ? (
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No announcements posted yet.</p>
               ) : (
-                notices.map(n => (
-                  <div key={n.id} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                (Array.isArray(notices) ? notices : []).map(n => (
+                  <div key={n.id || Math.random()} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <strong style={{ fontSize: '0.9rem' }}>{n.title}</strong>
-                      <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{n.content}</p>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>Posted by {n.postedBy} • {new Date(n.createdAt).toLocaleDateString()}</div>
+                      <strong style={{ fontSize: '0.9rem' }}>{n.title || 'Announcement'}</strong>
+                      <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{n.content || ''}</p>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>Posted by {n.postedBy || 'Faculty'} • {n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ''}</div>
                     </div>
                     <button type="button" onClick={() => handleDeleteNotice(n.id)} className="btn btn-secondary btn-sm" style={{ padding: '4px 8px', color: 'var(--color-absent)' }}>
                       Delete
