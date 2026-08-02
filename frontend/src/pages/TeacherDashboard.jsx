@@ -84,6 +84,11 @@ const TeacherDashboard = () => {
     localStorage.setItem('college_teacher_pdfs', JSON.stringify(updated));
     showToast('PDF note removed.', 'info');
   };
+  // Notice Board states
+  const [noticeTitle, setNoticeTitle] = useState('');
+  const [noticeContent, setNoticeContent] = useState('');
+  const [notices, setNotices] = useState([]);
+  const [loadingNotices, setLoadingNotices] = useState(false);
   const [postingNotice, setPostingNotice] = useState(false);
 
   // Calendar Planner states
