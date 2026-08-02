@@ -15,6 +15,8 @@ import StudentLeaves from './pages/StudentLeaves';
 import Timetable from './pages/Timetable';
 import AdminDashboard from './pages/AdminDashboard';
 
+import ErrorBoundary from './components/ErrorBoundary';
+
 // Protected Route Component to enforce roles
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
@@ -31,8 +33,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles.length && !allowedRoles.includes(user.role)) {
-    // Redirect to home page if they don't have role access
+  const userRole = (user?.role || '').toUpperCase();
+  if (allowedRoles.length && !allowedRoles.some(r => r.toUpperCase() === userRole)) {
     return <Navigate to="/" replace />;
   }
 
@@ -55,11 +57,12 @@ const HomeRedirect = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.role === 'STUDENT') {
+  const roleUpper = (user?.role || '').toUpperCase();
+  if (roleUpper === 'STUDENT') {
     return <Navigate to="/dashboard" replace />;
-  } else if (user.role === 'TEACHER') {
+  } else if (roleUpper === 'TEACHER') {
     return <Navigate to="/teacher/dashboard" replace />;
-  } else if (user.role === 'ADMIN') {
+  } else if (roleUpper === 'ADMIN') {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
@@ -93,24 +96,26 @@ const AppContent = () => {
     <div className="layout-wrapper">
       <Navbar />
       <main className="main-content-layout">
-        <Routes>
-          {/* Protected Student Routes */}
-          <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />
-          <Route path="/timetable" element={<Navigate to="/dashboard?tab=timetable" replace />} />
-          <Route path="/leaves" element={<Navigate to="/dashboard?tab=leaves" replace />} />
+        <ErrorBoundary>
+          <Routes>
+            {/* Protected Student Routes */}
+            <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />
+            <Route path="/timetable" element={<Navigate to="/dashboard?tab=timetable" replace />} />
+            <Route path="/leaves" element={<Navigate to="/dashboard?tab=leaves" replace />} />
 
-          {/* Protected Teacher Routes */}
-          <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['TEACHER']}><TeacherDashboard /></ProtectedRoute>} />
-          <Route path="/teacher/history" element={<Navigate to="/teacher/dashboard?tab=history" replace />} />
-          <Route path="/teacher/leaves" element={<Navigate to="/teacher/dashboard?tab=leaves" replace />} />
+            {/* Protected Teacher Routes */}
+            <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['TEACHER']}><TeacherDashboard /></ProtectedRoute>} />
+            <Route path="/teacher/history" element={<Navigate to="/teacher/dashboard?tab=history" replace />} />
+            <Route path="/teacher/leaves" element={<Navigate to="/teacher/dashboard?tab=leaves" replace />} />
 
-          {/* Protected Admin Routes */}
-          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+            {/* Protected Admin Routes */}
+            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
 
-          {/* Home Redirect and Catch-all */}
-          <Route path="/" element={<HomeRedirect />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Home Redirect and Catch-all */}
+            <Route path="/" element={<HomeRedirect />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
       <PWAInstallPrompt />
     </div>

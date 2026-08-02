@@ -42,8 +42,12 @@ const TeacherDashboard = () => {
 
   // Unit PDFs state for assigned subjects
   const [teacherPdfs, setTeacherPdfs] = useState(() => {
-    const saved = localStorage.getItem('college_teacher_pdfs');
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = localStorage.getItem('college_teacher_pdfs');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
   });
 
   const handleAddPdf = (subjectId, subjectCode) => {
