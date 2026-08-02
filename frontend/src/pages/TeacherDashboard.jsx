@@ -540,6 +540,77 @@ const TeacherDashboard = () => {
               </div>
             )}
           </div>
+
+          {/* Quick Notice Board & Post Announcement */}
+          <div className="card col-span-8">
+            <h3>Notice Board Announcements</h3>
+            <form onSubmit={handlePostNotice} style={{ marginTop: '14px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="Notice Title (e.g. Special Lecture & Test)" 
+                value={noticeTitle} 
+                onChange={(e) => setNoticeTitle(e.target.value)} 
+                disabled={postingNotice} 
+                required 
+              />
+              <textarea 
+                className="form-textarea" 
+                rows="2" 
+                placeholder="Announcement details..." 
+                value={noticeContent} 
+                onChange={(e) => setNoticeContent(e.target.value)} 
+                disabled={postingNotice} 
+                required 
+              />
+              <button type="submit" className="btn btn-primary btn-sm" disabled={postingNotice}>
+                Publish Announcement
+              </button>
+            </form>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto' }}>
+              {notices.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No announcements posted yet.</p>
+              ) : (
+                notices.map(n => (
+                  <div key={n.id} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <strong style={{ fontSize: '0.9rem' }}>{n.title}</strong>
+                      <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{n.content}</p>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>Posted by {n.postedBy} • {new Date(n.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <button type="button" onClick={() => handleDeleteNotice(n.id)} className="btn btn-secondary btn-sm" style={{ padding: '4px 8px', color: 'var(--color-absent)' }}>
+                      Delete
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* College Information Card */}
+          <div className="card col-span-4">
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Landmark size={20} style={{ color: 'var(--accent-primary)' }} />
+              College Details
+            </h3>
+            {collegeConfig ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '14px' }}>
+                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>College Name</span>
+                  <div style={{ fontWeight: '700', fontSize: '0.95rem', marginTop: '2px' }}>{collegeConfig.name}</div>
+                </div>
+                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>College Code & Academic Year</span>
+                  <div style={{ fontWeight: '700', fontSize: '0.9rem', color: 'var(--accent-secondary)', marginTop: '2px' }}>
+                    {collegeConfig.code} | {collegeConfig.academicYear}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '8px' }}>Loading college profile...</p>
+            )}
+          </div>
         </div>
       )}
 
