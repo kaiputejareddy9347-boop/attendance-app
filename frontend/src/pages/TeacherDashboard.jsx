@@ -707,8 +707,9 @@ const TeacherDashboard = () => {
                           <tbody>
                             {(students || []).map((st) => {
                               const isPreviouslyMarked = Boolean(initialStatusMap[st.id]);
-                              const isUnmarkedNewStudent = isAttendanceMarked && !isPreviouslyMarked;
-                              const canEditStudent = scheduledTodaySlots.length > 0 && (!isWindowExpired || !isPreviouslyMarked);
+                              const isUnmarkedNewStudent = !isPreviouslyMarked;
+                              // New or previously unmarked students can be marked Present, Late, or Absent at any time
+                              const canEditStudent = !isPreviouslyMarked || (!isWindowExpired && scheduledTodaySlots.length > 0);
 
                               return (
                                 <tr key={st.id} className="attendance-row">
