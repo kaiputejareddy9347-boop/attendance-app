@@ -21,6 +21,7 @@ const TeacherDashboard = () => {
   // Mark Attendance Form
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceRecords, setAttendanceRecords] = useState({});
+  const [initialStatusMap, setInitialStatusMap] = useState({});
   const [submittingAttendance, setSubmittingAttendance] = useState(false);
   const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
   const [attendanceMarkedAt, setAttendanceMarkedAt] = useState(null);
@@ -329,6 +330,7 @@ const TeacherDashboard = () => {
       const statusMap = studentStatusMap || {};
       
       setStudents(safeStudents);
+      setInitialStatusMap(statusMap);
 
       const defaultRecords = {};
       safeStudents.forEach((student) => {
@@ -623,14 +625,11 @@ const TeacherDashboard = () => {
           {/* Student attendance list roster */}
           <div className="card col-span-8">
             {(() => {
-              const canEditAttendance = () => {
-                if (scheduledTodaySlots.length === 0) return false;
-                if (!isAttendanceMarked) return true;
-                if (!attendanceMarkedAt) return true;
-                const hoursElapsed = (new Date() - new Date(attendanceMarkedAt)) / (1000 * 60 * 60);
-                return hoursElapsed <= 24;
-              };
-              const editable = canEditAttendance();
+              const isWindowExpired = isAttendanceMarked && attendanceMarkedAt && ((new Date() - new Date(attendanceMarkedAt)) / (1000 * 60 * 60) > 24);
+              const hasEditableStudents = (students || []).some(st => {
+                const isPreviouslyMarked = Boolean(initialStatusMap[st.id]);
+                return !isWindowExpired || !isPreviouslyMarked;
+              });
 
               return (
                 <>
@@ -639,19 +638,19 @@ const TeacherDashboard = () => {
                       <h3>Roll-call Registry</h3>
                       {selectedSlot && (
                         <span style={{ fontSize: '0.8rem', color: 'var(--color-present)', fontWeight: '600' }}>
-                          Active Slot: {selectedSlot.subject.code} for Class {selectedSlot.class.name}
+                          Active Slot: {selectedSlot.subject?.code} for Class {selectedSlot.class?.name}
                         </span>
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="button" onClick={() => handleMarkAll('PRESENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-present)' }} disabled={!editable}>All Present</button>
-                      <button type="button" onClick={() => handleMarkAll('ABSENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-absent)' }} disabled={!editable}>All Absent</button>
+                      <button type="button" onClick={() => handleMarkAll('PRESENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-present)' }} disabled={isWindowExpired || scheduledTodaySlots.length === 0}>All Present</button>
+                      <button type="button" onClick={() => handleMarkAll('ABSENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-absent)' }} disabled={isWindowExpired || scheduledTodaySlots.length === 0}>All Absent</button>
                     </div>
                   </div>
 
                   {loadingStudents ? (
                     <p>Loading student roster...</p>
-                  ) : students.length === 0 ? (
+                  ) : (students || []).length === 0 ? (
                     <div style={{ padding: '40px', border: '1px dashed var(--glass-border)', borderRadius: '12px', textAlign: 'center' }}>
                       <p style={{ color: 'var(--text-muted)' }}>No students roster loaded. Select a lecture slot on the calendar side to start.</p>
                     </div>
@@ -679,18 +678,18 @@ const TeacherDashboard = () => {
                           marginBottom: '16px',
                           padding: '12px 16px',
                           borderRadius: '8px',
-                          background: editable ? 'rgba(99, 102, 241, 0.08)' : 'rgba(239, 68, 68, 0.08)',
-                          border: editable ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)',
-                          color: editable ? 'var(--accent-secondary)' : 'var(--color-absent)',
+                          background: !isWindowExpired ? 'rgba(99, 102, 241, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+                          border: !isWindowExpired ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid rgba(245, 158, 11, 0.2)',
+                          color: !isWindowExpired ? 'var(--accent-secondary)' : '#f59e0b',
                           fontSize: '0.85rem'
                         }}>
-                          {editable ? (
+                          {!isWindowExpired ? (
                             <div>
-                              <strong>✓ Attendance Sheets Submitted:</strong> You can edit or modify these records for this session until <strong>{new Date(new Date(attendanceMarkedAt).getTime() + 24 * 60 * 60 * 1000).toLocaleString()}</strong> (24-hour edit window).
+                              <strong>✓ Attendance Sheets Submitted:</strong> You can edit or modify records for this session until <strong>{new Date(new Date(attendanceMarkedAt).getTime() + 24 * 60 * 60 * 1000).toLocaleString()}</strong> (24-hour edit window).
                             </div>
                           ) : (
                             <div>
-                              <strong>🔒 Registry Locked:</strong> Attendance for this lecture was marked on {new Date(attendanceMarkedAt).toLocaleString()} (more than 24 hours ago) and is now closed for edits.
+                              <strong>🔒 Partial Lock (24+ Hours Elapsed):</strong> Previously marked student attendance for this session was locked on {new Date(attendanceMarkedAt).toLocaleString()}. <strong>New or previously unmarked students remain unlocked and available for marking.</strong>
                             </div>
                           )}
                         </div>
@@ -706,43 +705,61 @@ const TeacherDashboard = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {students.map((st) => (
-                              <tr key={st.id} className="attendance-row">
-                                <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
-                                <td className="attendance-cell">
-                                  <div style={{ fontWeight: '600' }}>{st.user.name}</div>
-                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{st.user.email}</div>
-                                </td>
-                                <td className="attendance-cell" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                  <div className="status-selector" style={{ opacity: editable ? 1 : 0.6 }}>
-                                    <button
-                                      type="button"
-                                      onClick={() => editable && handleStatusChange(st.id, 'PRESENT')}
-                                      className={`status-btn status-btn-present ${attendanceRecords[st.id] === 'PRESENT' ? 'active' : ''}`}
-                                      disabled={!editable}
-                                    >
-                                      Present
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => editable && handleStatusChange(st.id, 'LATE')}
-                                      className={`status-btn status-btn-late ${attendanceRecords[st.id] === 'LATE' ? 'active' : ''}`}
-                                      disabled={!editable}
-                                    >
-                                      Late
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => editable && handleStatusChange(st.id, 'ABSENT')}
-                                      className={`status-btn status-btn-absent ${attendanceRecords[st.id] === 'ABSENT' ? 'active' : ''}`}
-                                      disabled={!editable}
-                                    >
-                                      Absent
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
+                            {(students || []).map((st) => {
+                              const isPreviouslyMarked = Boolean(initialStatusMap[st.id]);
+                              const isUnmarkedNewStudent = isAttendanceMarked && !isPreviouslyMarked;
+                              const canEditStudent = scheduledTodaySlots.length > 0 && (!isWindowExpired || !isPreviouslyMarked);
+
+                              return (
+                                <tr key={st.id} className="attendance-row">
+                                  <td className="attendance-cell" style={{ fontWeight: '700', color: 'var(--accent-secondary)' }}>{st.rollNumber}</td>
+                                  <td className="attendance-cell">
+                                    <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                      <span>{st?.user?.name || 'Student'}</span>
+                                      {isUnmarkedNewStudent && (
+                                        <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)', fontWeight: '700' }}>
+                                          🆕 New / Unmarked Student
+                                        </span>
+                                      )}
+                                      {isWindowExpired && isPreviouslyMarked && (
+                                        <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-absent)', border: '1px solid rgba(239, 68, 68, 0.2)', fontWeight: '700' }}>
+                                          🔒 Locked (24h+)
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{st?.user?.email || 'N/A'}</div>
+                                  </td>
+                                  <td className="attendance-cell" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                    <div className="status-selector" style={{ opacity: canEditStudent ? 1 : 0.5 }}>
+                                      <button
+                                        type="button"
+                                        onClick={() => canEditStudent && handleStatusChange(st.id, 'PRESENT')}
+                                        className={`status-btn status-btn-present ${attendanceRecords[st.id] === 'PRESENT' ? 'active' : ''}`}
+                                        disabled={!canEditStudent}
+                                      >
+                                        Present
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => canEditStudent && handleStatusChange(st.id, 'LATE')}
+                                        className={`status-btn status-btn-late ${attendanceRecords[st.id] === 'LATE' ? 'active' : ''}`}
+                                        disabled={!canEditStudent}
+                                      >
+                                        Late
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => canEditStudent && handleStatusChange(st.id, 'ABSENT')}
+                                        className={`status-btn status-btn-absent ${attendanceRecords[st.id] === 'ABSENT' ? 'active' : ''}`}
+                                        disabled={!canEditStudent}
+                                      >
+                                        Absent
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -751,10 +768,10 @@ const TeacherDashboard = () => {
                         type="submit" 
                         className="btn btn-primary" 
                         style={{ width: '100%', marginTop: '20px' }} 
-                        disabled={submittingAttendance || !editable}
+                        disabled={submittingAttendance || scheduledTodaySlots.length === 0 || !hasEditableStudents}
                       >
                         <UserCheck size={18} />
-                        {submittingAttendance ? 'Saving Attendance Records...' : isAttendanceMarked ? (editable ? 'Update Attendance Records' : 'Attendance Registry Locked') : 'Save & Publish Attendance'}
+                        {submittingAttendance ? 'Saving Attendance Records...' : isAttendanceMarked ? (hasEditableStudents ? 'Save & Publish Attendance Updates' : 'Attendance Registry Locked') : 'Save & Publish Attendance'}
                       </button>
                     </form>
                   )}
