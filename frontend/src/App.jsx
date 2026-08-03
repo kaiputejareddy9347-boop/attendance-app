@@ -16,6 +16,7 @@ import Timetable from './pages/Timetable';
 import AdminDashboard from './pages/AdminDashboard';
 
 import ErrorBoundary from './components/ErrorBoundary';
+import SplashScreen from './components/SplashScreen';
 
 // Protected Route Component to enforce roles
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -71,6 +72,15 @@ const HomeRedirect = () => {
 
 const AppContent = () => {
   const { user, loading } = useAuth();
+  const [showSplash, setShowSplash] = React.useState(() => {
+    const splashSeen = sessionStorage.getItem('attendease_splash_seen');
+    return !splashSeen;
+  });
+
+  const handleSplashFinish = () => {
+    sessionStorage.setItem('attendease_splash_seen', 'true');
+    setShowSplash(false);
+  };
 
   if (loading) {
     return (
@@ -83,6 +93,7 @@ const AppContent = () => {
   if (!user) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -94,6 +105,7 @@ const AppContent = () => {
 
   return (
     <div className="layout-wrapper">
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
       <Navbar />
       <main className="main-content-layout">
         <ErrorBoundary>
