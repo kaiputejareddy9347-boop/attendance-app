@@ -62,6 +62,7 @@ const AdminDashboard = () => {
 
   // Create Holiday fields
   const [holidayName, setHolidayName] = useState('');
+  const [isSingleDayHoliday, setIsSingleDayHoliday] = useState(false);
   const [holidayStart, setHolidayStart] = useState('');
   const [holidayEnd, setHolidayEnd] = useState('');
   const [holidayDesc, setHolidayDesc] = useState('');
@@ -342,8 +343,9 @@ const AdminDashboard = () => {
 
   const handleCreateHoliday = async (e) => {
     e.preventDefault();
-    if (!holidayName || !holidayStart || !holidayEnd) {
-      showToast('Name, start date, and end date are required.', 'warning');
+    const finalEndDate = isSingleDayHoliday ? holidayStart : holidayEnd;
+    if (!holidayName || !holidayStart || (!isSingleDayHoliday && !holidayEnd)) {
+      showToast('Title and holiday date(s) are required.', 'warning');
       return;
     }
     setCreatingHoliday(true);
@@ -351,14 +353,15 @@ const AdminDashboard = () => {
       await axios.post('/api/admin/holidays', {
         name: holidayName,
         startDate: holidayStart,
-        endDate: holidayEnd,
+        endDate: finalEndDate,
         description: holidayDesc,
       });
-      showToast('Holiday break declared successfully.', 'success');
+      showToast(isSingleDayHoliday ? 'One-Day Holiday declared successfully!' : 'Holiday break declared successfully.', 'success');
       setHolidayName('');
       setHolidayStart('');
       setHolidayEnd('');
       setHolidayDesc('');
+      setIsSingleDayHoliday(false);
       fetchAdminData();
     } catch (err) {
       showToast('Failed to create holiday.', 'error');
@@ -1380,17 +1383,33 @@ const AdminDashboard = () => {
             <form onSubmit={handleCreateHoliday}>
               <div className="form-group">
                 <label className="form-label" htmlFor="holName">Holiday Title</label>
-                <input id="holName" type="text" className="form-input" placeholder="e.g. Winter Break Recess" value={holidayName} onChange={(e) => setHolidayName(e.target.value)} disabled={creatingHoliday} />
+                <input id="holName" type="text" className="form-input" placeholder="e.g. Independence Day / Winter Recess" value={holidayName} onChange={(e) => setHolidayName(e.target.value)} disabled={creatingHoliday} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+
+              <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                <input 
+                  type="checkbox" 
+                  id="singleDayCheck" 
+                  checked={isSingleDayHoliday} 
+                  onChange={(e) => setIsSingleDayHoliday(e.target.checked)} 
+                  style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                />
+                <label htmlFor="singleDayCheck" style={{ fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', color: 'var(--accent-secondary)' }}>
+                  🎉 Single Day Holiday (1-Day Break)
+                </label>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: isSingleDayHoliday ? '1fr' : '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label" htmlFor="holStart">Start Date</label>
+                  <label className="form-label" htmlFor="holStart">{isSingleDayHoliday ? 'Holiday Date' : 'Start Date'}</label>
                   <input id="holStart" type="date" className="form-input" value={holidayStart} onChange={(e) => setHolidayStart(e.target.value)} />
                 </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="holEnd">End Date</label>
-                  <input id="holEnd" type="date" className="form-input" value={holidayEnd} onChange={(e) => setHolidayEnd(e.target.value)} />
-                </div>
+                {!isSingleDayHoliday && (
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="holEnd">End Date</label>
+                    <input id="holEnd" type="date" className="form-input" value={holidayEnd} onChange={(e) => setHolidayEnd(e.target.value)} />
+                  </div>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="holDesc">Description / Notes</label>
@@ -1407,20 +1426,32 @@ const AdminDashboard = () => {
               {holidays.length === 0 ? (
                 <p style={{ color: 'var(--text-muted)' }}>No academic recess declared.</p>
               ) : (
-                holidays.map((hol) => (
-                  <div key={hol.id} style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ fontWeight: '600' }}>{hol.name}</h4>
-                      {hol.description && <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '4px 0' }}>"{hol.description}"</p>}
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        Duration: {new Date(hol.startDate).toLocaleDateString()} - {new Date(hol.endDate).toLocaleDateString()}
+                holidays.map((hol) => {
+                  const isOneDay = new Date(hol.startDate).toDateString() === new Date(hol.endDate).toDateString() || hol.startDate === hol.endDate;
+                  return (
+                    <div key={hol.id} style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <h4 style={{ fontWeight: '600' }}>{hol.name}</h4>
+                          {isOneDay && (
+                            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-present)', border: '1px solid rgba(16, 185, 129, 0.3)', fontWeight: '700' }}>
+                              🎉 1-Day Holiday
+                            </span>
+                          )}
+                        </div>
+                        {hol.description && <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '4px 0' }}>"{hol.description}"</p>}
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                          {isOneDay 
+                            ? `📅 Date: ${new Date(hol.startDate).toLocaleDateString()}`
+                            : `📅 Recess: ${new Date(hol.startDate).toLocaleDateString()} - ${new Date(hol.endDate).toLocaleDateString()}`}
+                        </div>
                       </div>
+                      <button onClick={() => handleDeleteHoliday(hol.id)} className="btn btn-secondary btn-sm" style={{ padding: '8px', color: 'var(--color-absent)' }} title="Remove Break">
+                        <Trash2 size={16} />
+                      </button>
                     </div>
-                    <button onClick={() => handleDeleteHoliday(hol.id)} className="btn btn-secondary btn-sm" style={{ padding: '8px', color: 'var(--color-absent)' }} title="Remove Break">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

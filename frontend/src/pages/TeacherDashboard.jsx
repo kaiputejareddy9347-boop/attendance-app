@@ -42,7 +42,10 @@ const TeacherDashboard = () => {
   const [history, setHistory] = useState([]);
   const [collegeConfig, setCollegeConfig] = useState(null);
 
-  // Unit PDFs state for assigned subjects
+  // Unit PDFs & PPTs state for assigned subjects
+  const fileInputRef = React.useRef(null);
+  const [activeUploadSubject, setActiveUploadSubject] = useState(null);
+
   const [teacherPdfs, setTeacherPdfs] = useState(() => {
     try {
       const saved = localStorage.getItem('college_teacher_pdfs');
@@ -52,30 +55,40 @@ const TeacherDashboard = () => {
     }
   });
 
-  const handleAddPdf = (subjectId, subjectCode) => {
-    const pdfName = prompt(`Enter Unit PDF Title for ${subjectCode} (e.g. Unit 1: Advanced Algorithms Notes):`);
-    if (!pdfName) return;
+  const triggerFileUpload = (subjectId, subjectCode) => {
+    setActiveUploadSubject({ id: subjectId, code: subjectCode });
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
-    const currentPdfs = teacherPdfs[subjectId] || [];
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file || !activeUploadSubject) return;
+
+    const currentPdfs = teacherPdfs[activeUploadSubject.id] || [];
     const newPdf = {
       id: Date.now().toString(),
-      title: pdfName,
+      title: file.name.replace(/\.[^/.]+$/, ""),
       uploadedAt: new Date().toLocaleDateString(),
-      fileName: `${subjectCode}_${pdfName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
+      fileName: file.name,
+      fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+      fileType: file.name.endsWith('.ppt') || file.name.endsWith('.pptx') ? 'PPT Presentation' : 'PDF Document'
     };
 
     const updated = {
       ...teacherPdfs,
-      [subjectId]: [...currentPdfs, newPdf]
+      [activeUploadSubject.id]: [...currentPdfs, newPdf]
     };
 
     setTeacherPdfs(updated);
     localStorage.setItem('college_teacher_pdfs', JSON.stringify(updated));
-    showToast(`Successfully uploaded "${pdfName}" for ${subjectCode}!`, 'success');
+    showToast(`Successfully uploaded "${file.name}" to File Manager for ${activeUploadSubject.code}!`, 'success');
+    e.target.value = null;
   };
 
   const handleRemovePdf = (subjectId, pdfId) => {
-    if (!confirm('Are you sure you want to remove this PDF?')) return;
+    if (!confirm('Are you sure you want to remove this study material file?')) return;
     const currentPdfs = teacherPdfs[subjectId] || [];
     const updatedPdfs = currentPdfs.filter(p => p.id !== pdfId);
     const updated = {
@@ -84,7 +97,7 @@ const TeacherDashboard = () => {
     };
     setTeacherPdfs(updated);
     localStorage.setItem('college_teacher_pdfs', JSON.stringify(updated));
-    showToast('PDF note removed.', 'info');
+    showToast('Study material file removed.', 'info');
   };
   // Notice Board states
   const [noticeTitle, setNoticeTitle] = useState('');
@@ -625,12 +638,6 @@ const TeacherDashboard = () => {
           {/* Student attendance list roster */}
           <div className="card col-span-8">
             {(() => {
-              const isWindowExpired = isAttendanceMarked && attendanceMarkedAt && ((new Date() - new Date(attendanceMarkedAt)) / (1000 * 60 * 60) > 24);
-              const hasEditableStudents = (students || []).some(st => {
-                const isPreviouslyMarked = Boolean(initialStatusMap[st.id]);
-                return !isWindowExpired || !isPreviouslyMarked;
-              });
-
               return (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
@@ -643,8 +650,8 @@ const TeacherDashboard = () => {
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="button" onClick={() => handleMarkAll('PRESENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-present)' }} disabled={isWindowExpired || scheduledTodaySlots.length === 0}>All Present</button>
-                      <button type="button" onClick={() => handleMarkAll('ABSENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-absent)' }} disabled={isWindowExpired || scheduledTodaySlots.length === 0}>All Absent</button>
+                      <button type="button" onClick={() => handleMarkAll('PRESENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-present)' }} disabled={scheduledTodaySlots.length === 0}>All Present</button>
+                      <button type="button" onClick={() => handleMarkAll('ABSENT')} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-absent)' }} disabled={scheduledTodaySlots.length === 0}>All Absent</button>
                     </div>
                   </div>
 
@@ -656,7 +663,7 @@ const TeacherDashboard = () => {
                     </div>
                   ) : (
                     <form onSubmit={handleSubmitAttendance}>
-                      {/* Access Restricted Warning if Timetable Doesn't Match */}
+                      {/* Timetable match indicator */}
                       {scheduledTodaySlots.length === 0 ? (
                         <div style={{
                           marginBottom: '16px',
@@ -678,20 +685,14 @@ const TeacherDashboard = () => {
                           marginBottom: '16px',
                           padding: '12px 16px',
                           borderRadius: '8px',
-                          background: !isWindowExpired ? 'rgba(99, 102, 241, 0.08)' : 'rgba(245, 158, 11, 0.08)',
-                          border: !isWindowExpired ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid rgba(245, 158, 11, 0.2)',
-                          color: !isWindowExpired ? 'var(--accent-secondary)' : '#f59e0b',
+                          background: 'rgba(99, 102, 241, 0.08)',
+                          border: '1px solid rgba(99, 102, 241, 0.2)',
+                          color: 'var(--accent-secondary)',
                           fontSize: '0.85rem'
                         }}>
-                          {!isWindowExpired ? (
-                            <div>
-                              <strong>✓ Attendance Sheets Submitted:</strong> You can edit or modify records for this session until <strong>{new Date(new Date(attendanceMarkedAt).getTime() + 24 * 60 * 60 * 1000).toLocaleString()}</strong> (24-hour edit window).
-                            </div>
-                          ) : (
-                            <div>
-                              <strong>🔒 Partial Lock (24+ Hours Elapsed):</strong> Previously marked student attendance for this session was locked on {new Date(attendanceMarkedAt).toLocaleString()}. <strong>New or previously unmarked students remain unlocked and available for marking.</strong>
-                            </div>
-                          )}
+                          <div>
+                            <strong>✓ Attendance Records Active:</strong> You can edit or modify student records for this session anytime.
+                          </div>
                         </div>
                       )}
 
@@ -706,10 +707,7 @@ const TeacherDashboard = () => {
                           </thead>
                           <tbody>
                             {(students || []).map((st) => {
-                              const isPreviouslyMarked = Boolean(initialStatusMap[st.id]);
-                              const isUnmarkedNewStudent = !isPreviouslyMarked;
-                              // New or previously unmarked students can be marked Present, Late, or Absent at any time
-                              const canEditStudent = !isPreviouslyMarked || (!isWindowExpired && scheduledTodaySlots.length > 0);
+                              const isUnmarkedNewStudent = !initialStatusMap[st.id];
 
                               return (
                                 <tr key={st.id} className="attendance-row">
@@ -719,40 +717,32 @@ const TeacherDashboard = () => {
                                       <span>{st?.user?.name || 'Student'}</span>
                                       {isUnmarkedNewStudent && (
                                         <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)', fontWeight: '700' }}>
-                                          🆕 New / Unmarked Student
-                                        </span>
-                                      )}
-                                      {isWindowExpired && isPreviouslyMarked && (
-                                        <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-absent)', border: '1px solid rgba(239, 68, 68, 0.2)', fontWeight: '700' }}>
-                                          🔒 Locked (24h+)
+                                          🆕 New Student
                                         </span>
                                       )}
                                     </div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{st?.user?.email || 'N/A'}</div>
                                   </td>
                                   <td className="attendance-cell" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                    <div className="status-selector" style={{ opacity: canEditStudent ? 1 : 0.5 }}>
+                                    <div className="status-selector">
                                       <button
                                         type="button"
-                                        onClick={() => canEditStudent && handleStatusChange(st.id, 'PRESENT')}
+                                        onClick={() => handleStatusChange(st.id, 'PRESENT')}
                                         className={`status-btn status-btn-present ${attendanceRecords[st.id] === 'PRESENT' ? 'active' : ''}`}
-                                        disabled={!canEditStudent}
                                       >
                                         Present
                                       </button>
                                       <button
                                         type="button"
-                                        onClick={() => canEditStudent && handleStatusChange(st.id, 'LATE')}
+                                        onClick={() => handleStatusChange(st.id, 'LATE')}
                                         className={`status-btn status-btn-late ${attendanceRecords[st.id] === 'LATE' ? 'active' : ''}`}
-                                        disabled={!canEditStudent}
                                       >
                                         Late
                                       </button>
                                       <button
                                         type="button"
-                                        onClick={() => canEditStudent && handleStatusChange(st.id, 'ABSENT')}
+                                        onClick={() => handleStatusChange(st.id, 'ABSENT')}
                                         className={`status-btn status-btn-absent ${attendanceRecords[st.id] === 'ABSENT' ? 'active' : ''}`}
-                                        disabled={!canEditStudent}
                                       >
                                         Absent
                                       </button>
@@ -769,10 +759,10 @@ const TeacherDashboard = () => {
                         type="submit" 
                         className="btn btn-primary" 
                         style={{ width: '100%', marginTop: '20px' }} 
-                        disabled={submittingAttendance || scheduledTodaySlots.length === 0 || !hasEditableStudents}
+                        disabled={submittingAttendance || scheduledTodaySlots.length === 0}
                       >
                         <UserCheck size={18} />
-                        {submittingAttendance ? 'Saving Attendance Records...' : isAttendanceMarked ? (hasEditableStudents ? 'Save & Publish Attendance Updates' : 'Attendance Registry Locked') : 'Save & Publish Attendance'}
+                        {submittingAttendance ? 'Saving Attendance Records...' : isAttendanceMarked ? 'Save & Publish Attendance Updates' : 'Save & Publish Attendance'}
                       </button>
                     </form>
                   )}
@@ -803,36 +793,40 @@ const TeacherDashboard = () => {
                       </div>
                       <button
                         type="button"
-                        onClick={() => handleAddPdf(sub.id, sub.code)}
+                        onClick={() => triggerFileUpload(sub.id, sub.code)}
                         className="btn btn-primary btn-sm"
                       >
-                        + Upload Unit PDF
+                        📁 + Upload File (File Manager)
                       </button>
                     </div>
 
                     <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px' }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px' }}>
-                        Uploaded Unit Notes ({subPdfs.length} Files):
+                        Uploaded Study Files ({subPdfs.length} Files):
                       </div>
 
                       {subPdfs.length === 0 ? (
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                          No unit PDFs uploaded for this subject yet. Click "+ Upload Unit PDF" to add lecture notes for students.
+                          No study materials uploaded for this subject yet. Click "📁 + Upload File (File Manager)" to select PDFs or PPTs from your device.
                         </p>
                       ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '10px' }}>
                           {subPdfs.map((pdf) => (
                             <div key={pdf.id} style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <div>
-                                <div style={{ fontWeight: '600' }}>📄 {pdf.title}</div>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>{pdf.uploadedAt}</div>
+                                <div style={{ fontWeight: '600' }}>
+                                  {pdf.fileType === 'PPT Presentation' ? '📊' : '📄'} {pdf.title}
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                  {pdf.fileName} ({pdf.fileSize || '1.2 MB'}) • {pdf.uploadedAt}
+                                </div>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => handleRemovePdf(sub.id, pdf.id)}
                                 style={{ background: 'transparent', border: 'none', color: 'var(--color-absent)', cursor: 'pointer', fontSize: '0.75rem' }}
                               >
-                                Delete
+                                Remove
                               </button>
                             </div>
                           ))}
@@ -844,6 +838,14 @@ const TeacherDashboard = () => {
               })}
             </div>
           )}
+          {/* Hidden File Input for Native File Manager */}
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            style={{ display: 'none' }} 
+            accept=".pdf,.ppt,.pptx,.doc,.docx" 
+            onChange={handleFileChange} 
+          />
         </div>
       )}
 

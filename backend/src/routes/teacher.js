@@ -166,39 +166,9 @@ router.post('/attendance', async (req, res) => {
       return res.status(404).json({ message: 'Teacher profile not found.' });
     }
 
-    // Fetch all existing attendance records for this date and subject
-    const existingRecords = await prisma.attendance.findMany({
-      where: {
-        date: parsedDate,
-        subjectId,
-      },
-    });
-
-    const existingRecordMap = new Map();
-    existingRecords.forEach(rec => {
-      existingRecordMap.set(rec.studentId, rec);
-    });
-
-    const now = new Date();
-    // Filter records: allow NEW/UNMARKED students (not in existingRecordMap) OR records created <= 24h ago
-    const validRecordsToSave = records.filter(rec => {
-      const existing = existingRecordMap.get(rec.studentId);
-      if (!existing) {
-        return true; // NEW / UNMARKED STUDENT -> ALWAYS ALLOWED TO MARK
-      }
-      const hoursElapsed = (now - new Date(existing.createdAt)) / (1000 * 60 * 60);
-      return hoursElapsed <= 24; // Previously marked student -> allowed if within 24 hours
-    });
-
-    if (validRecordsToSave.length === 0 && records.length > 0) {
-      return res.status(403).json({ 
-        message: 'Attendance modification closed for previously marked students (24+ hours elapsed).' 
-      });
-    }
-
-    // Save attendance records in a transaction using upsert
+    // Save attendance records directly in a transaction using upsert
     const savedRecords = await prisma.$transaction(
-      validRecordsToSave.map((rec) =>
+      records.map((rec) =>
         prisma.attendance.upsert({
           where: {
             date_studentId_subjectId: {

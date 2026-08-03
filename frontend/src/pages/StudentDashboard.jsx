@@ -1038,44 +1038,63 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            {/* Coding Handles & Developer Profiles */}
-            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--accent-primary)', marginTop: '8px' }}>
-              <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--accent-primary)', marginBottom: '12px' }}>
-                ⚡ Student Coding Handles & Developer Profiles
+            {/* Coding Handles & Developer Profiles (Vertical List - One by One) */}
+            <div style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--accent-primary)', marginTop: '8px' }}>
+              <div style={{ fontWeight: '700', fontSize: '1rem', color: 'var(--accent-primary)', marginBottom: '16px', textAlign: 'left' }}>
+                ⚡ Student Coding Handles & Professional Profiles
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.825rem' }}>
-                <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>LeetCode Handle</span>
-                  <div style={{ fontWeight: '700', color: 'var(--color-present)', marginTop: '2px' }}>
-                    {leetcodeUsername ? `@${leetcodeUsername}` : '@kaiputejareddy'}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* 1. LeetCode */}
+                <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>1. LeetCode Handle</div>
+                    <div style={{ fontWeight: '700', color: 'var(--color-present)', fontSize: '0.95rem', marginTop: '2px' }}>
+                      {leetcodeUsername ? `@${leetcodeUsername}` : '@kaiputejareddy'}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                  <div style={{ textAlign: 'right', fontSize: '0.8rem', fontWeight: '700', color: 'var(--accent-secondary)' }}>
                     Rank: {leetcodeStats?.ranking || '#18,450 (Knight)'}
                   </div>
                 </div>
 
-                <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>GitHub Handle</span>
-                  <div style={{ fontWeight: '700', color: 'var(--accent-secondary)', marginTop: '2px' }}>
-                    @{leetcodeUsername || 'kaiputejareddy'}
+                {/* 2. GitHub */}
+                <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>2. GitHub Profile Link</div>
+                    <div style={{ fontWeight: '700', color: '#fff', fontSize: '0.95rem', marginTop: '2px' }}>
+                      @{leetcodeUsername || 'kaiputejareddy'}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    github.com/{leetcodeUsername || 'kaiputejareddy'}
-                  </div>
+                  <a href={`https://github.com/${leetcodeUsername || 'kaiputejareddy'}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)', fontWeight: '600', textDecoration: 'none' }}>
+                    github.com/{leetcodeUsername || 'kaiputejareddy'} ↗
+                  </a>
                 </div>
 
-                <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>LinkedIn Profile</span>
-                  <div style={{ fontWeight: '700', color: '#60a5fa', marginTop: '2px' }}>
-                    linkedin.com/in/{leetcodeUsername || 'kaiputejareddy'}
+                {/* 3. LinkedIn */}
+                <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>3. LinkedIn Professional Network</div>
+                    <div style={{ fontWeight: '700', color: '#60a5fa', fontSize: '0.95rem', marginTop: '2px' }}>
+                      linkedin.com/in/{leetcodeUsername || 'kaiputejareddy'}
+                    </div>
                   </div>
+                  <a href={`https://linkedin.com/in/${leetcodeUsername || 'kaiputejareddy'}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: '600', textDecoration: 'none' }}>
+                    View Profile ↗
+                  </a>
                 </div>
 
-                <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Verified Phone</span>
-                  <div style={{ fontWeight: '700', color: 'var(--accent-secondary)', marginTop: '2px' }}>
-                    {mobilePhone}
+                {/* 4. Verified Mobile Contact */}
+                <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>4. Primary Mobile Contact</div>
+                    <div style={{ fontWeight: '700', color: 'var(--accent-secondary)', fontSize: '0.95rem', marginTop: '2px' }}>
+                      {mobilePhone}
+                    </div>
                   </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-present)', fontWeight: '700' }}>
+                    ✓ SMS Alerts Active
+                  </span>
                 </div>
               </div>
             </div>
