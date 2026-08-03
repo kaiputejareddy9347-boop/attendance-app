@@ -93,36 +93,7 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Quick Demo Autofill Pills */}
-        <div style={{
-          marginBottom: '20px',
-          padding: '12px',
-          borderRadius: '12px',
-          background: 'rgba(255, 255, 255, 0.02)',
-          border: '1px solid var(--glass-border)'
-        }}>
-          <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
-            Quick Demo Login Accounts:
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-            <button
-              type="button"
-              onClick={() => autofillRole('student@college.edu', 'password123')}
-              className="btn btn-secondary btn-sm"
-              style={{ fontSize: '0.8rem', padding: '8px', borderRadius: '8px' }}
-            >
-              🎓 Student
-            </button>
-            <button
-              type="button"
-              onClick={() => autofillRole('teacher@college.edu', 'password123')}
-              className="btn btn-secondary btn-sm"
-              style={{ fontSize: '0.8rem', padding: '8px', borderRadius: '8px' }}
-            >
-              👨‍🏫 Teacher
-            </button>
-          </div>
-        </div>
+
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
