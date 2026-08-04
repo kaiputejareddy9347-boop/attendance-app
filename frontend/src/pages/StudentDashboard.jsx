@@ -992,21 +992,22 @@ const StudentDashboard = () => {
               <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>{user?.name}</div>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {/* Email Address & Mobile Phone Stacked Vertically */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email Address</span>
-                <div style={{ fontWeight: '600', marginTop: '4px', fontSize: '0.9rem' }}>{user?.email}</div>
+                <div style={{ fontWeight: '600', marginTop: '4px', fontSize: '0.95rem', color: '#fff' }}>{user?.email}</div>
               </div>
 
               <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mobile Phone Number</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mobile Phone Number (Primary Contact)</span>
                   <button 
                     type="button" 
                     onClick={() => setEditingMobile(!editingMobile)} 
                     style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
                   >
-                    {editingMobile ? 'Cancel' : 'Edit'}
+                    {editingMobile ? 'Cancel' : 'Edit Number'}
                   </button>
                 </div>
 
@@ -1033,8 +1034,8 @@ const StudentDashboard = () => {
                     </button>
                   </div>
                 ) : (
-                  <div style={{ fontWeight: '700', marginTop: '4px', color: 'var(--accent-secondary)', fontSize: '1rem' }}>
-                    {mobilePhone}
+                  <div style={{ fontWeight: '700', marginTop: '4px', color: 'var(--accent-secondary)', fontSize: '1.05rem' }}>
+                    📱 {mobilePhone}
                   </div>
                 )}
               </div>
@@ -1050,6 +1051,7 @@ const StudentDashboard = () => {
                 <div style={{ fontWeight: '700', fontSize: '1.1rem', marginTop: '4px' }}>Semester {studentClassInfo?.semester || 1}</div>
               </div>
             </div>
+
             <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Class Group / Department</span>
               <div style={{ fontWeight: '600', marginTop: '4px' }}>
@@ -1060,14 +1062,25 @@ const StudentDashboard = () => {
             {/* Coding Handles & Developer Profiles (Vertical List - One by One) */}
             <div style={{ padding: '20px', borderRadius: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--accent-primary)', marginTop: '8px' }}>
               <div style={{ fontWeight: '700', fontSize: '1rem', color: 'var(--accent-primary)', marginBottom: '16px', textAlign: 'left' }}>
-                ⚡ Student Coding Handles & Professional Profiles
+                ⚡ Developer Profiles & Contact Handles
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {/* 1. LeetCode */}
+                {/* 1. Mobile Phone */}
                 <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>1. LeetCode Handle</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>1. Primary Mobile Number</div>
+                    <div style={{ fontWeight: '700', color: 'var(--accent-secondary)', fontSize: '0.95rem', marginTop: '2px' }}>
+                      {mobilePhone}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-present)', fontWeight: '600' }}>✓ Verified SMS</span>
+                </div>
+
+                {/* 2. LeetCode */}
+                <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>2. LeetCode Handle</div>
                     <div style={{ fontWeight: '700', color: 'var(--color-present)', fontSize: '0.95rem', marginTop: '2px' }}>
                       {leetcodeUsername ? `@${leetcodeUsername}` : '@kaiputejareddy'}
                     </div>
@@ -1077,10 +1090,10 @@ const StudentDashboard = () => {
                   </div>
                 </div>
 
-                {/* 2. GitHub */}
+                {/* 3. GitHub */}
                 <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>2. GitHub Profile Link</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>3. GitHub Profile Link</div>
                     <div style={{ fontWeight: '700', color: '#fff', fontSize: '0.95rem', marginTop: '2px' }}>
                       @{leetcodeUsername || 'kaiputejareddy'}
                     </div>
@@ -1090,30 +1103,17 @@ const StudentDashboard = () => {
                   </a>
                 </div>
 
-                {/* 3. LinkedIn */}
+                {/* 4. LinkedIn */}
                 <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>3. LinkedIn Professional Network</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>4. LinkedIn Professional Network</div>
                     <div style={{ fontWeight: '700', color: '#60a5fa', fontSize: '0.95rem', marginTop: '2px' }}>
                       linkedin.com/in/{leetcodeUsername || 'kaiputejareddy'}
                     </div>
                   </div>
                   <a href={`https://linkedin.com/in/${leetcodeUsername || 'kaiputejareddy'}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: '600', textDecoration: 'none' }}>
-                    View Profile ↗
+                    Connect ↗
                   </a>
-                </div>
-
-                {/* 4. Verified Mobile Contact */}
-                <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>4. Primary Mobile Contact</div>
-                    <div style={{ fontWeight: '700', color: 'var(--accent-secondary)', fontSize: '0.95rem', marginTop: '2px' }}>
-                      {mobilePhone}
-                    </div>
-                  </div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-present)', fontWeight: '700' }}>
-                    ✓ SMS Alerts Active
-                  </span>
                 </div>
               </div>
             </div>

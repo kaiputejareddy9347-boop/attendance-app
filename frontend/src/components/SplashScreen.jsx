@@ -77,20 +77,25 @@ const SplashScreen = ({ onFinish }) => {
             animation: 'pulse 2s infinite alternate'
           }} />
 
-          {/* Logo container */}
+          {/* Logo container displaying custom PWA icon */}
           <div style={{
             width: '88px',
             height: '88px',
-            borderRadius: '26px',
-            background: 'linear-gradient(135deg, #4f46e5 0%, #9333ea 100%)',
+            borderRadius: '24px',
+            overflow: 'hidden',
             boxShadow: '0 12px 32px rgba(99, 102, 241, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             transform: 'scale(1)',
-            transition: 'transform 0.3s ease'
+            transition: 'transform 0.3s ease',
+            background: '#0f172a'
           }}>
-            <GraduationCap size={48} style={{ color: '#ffffff', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))' }} />
+            <img 
+              src="/pwa-icon.jpg" 
+              alt="AttendEase App Icon" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            />
           </div>
         </div>
 
